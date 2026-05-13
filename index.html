@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="description"
+    content="CVForge Pro — Build ATS-optimized, recruiter-ready CVs in minutes using Groq AI. Free keyword extraction, AI-powered summaries, and multi-format export.">
+  <meta name="theme-color" content="#07080f">
+  <meta name="robots" content="index, follow">
+  <meta property="og:title" content="CVForge Pro — AI-Powered ATS CV Builder">
+  <meta property="og:description"
+    content="Build ATS-optimized CVs with Groq AI. Extract keywords, generate summaries, and export as PDF, RTF, or TXT.">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%234f8ef7'/%3E%3Ctext x='50' y='65' font-family='Arial' font-weight='800' font-size='42' fill='white' text-anchor='middle'%3ECV%3C/text%3E%3C/svg%3E">
+  <title>CVForge Pro — AI-Powered ATS CV Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <!-- TOP NAV -->
+  <nav class="topnav" role="navigation" aria-label="Main navigation">
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </button>
+    <div class="logo">
+      <div class="logo-mark">CV</div>CV<em>Forge</em> Pro
+    </div>
+    <div class="nav-right">
+      <span class="draft-indicator" id="draftIndicator">Draft saved</span>
+      <div class="pill groq"><span class="dot"></span><span>Groq · llama-3.3-70b</span></div>
+      <div class="score-pill" id="topScorePill" style="display:none" role="button" tabindex="0"
+        aria-label="View ATS score">
+        <span>⚡</span><span id="topScoreVal">0</span><span>ATS</span>
+      </div>
+      <div class="api-key-btn" id="apiKeyBtn" role="button" tabindex="0" aria-label="Set Groq API key">
+        🔑 <span id="apiKeyStatus">Set Groq Key</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="shell">
+    <!-- Mobile sidebar overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="CV sections">
+      <div class="sidebar-label">Setup</div>
+      <div class="sitem active" id="sitem0" role="button" tabindex="0">
+        <div class="s-num">1</div>Target Role<div class="s-check">✓</div>
+      </div>
+      <div class="sitem" id="sitem1" role="button" tabindex="0">
+        <div class="s-num">2</div>Personal Info<div class="s-check">✓</div>
+      </div>
+      <div class="sidebar-label">Content</div>
+      <div class="sitem" id="sitem2" role="button" tabindex="0">
+        <div class="s-num">3</div>Summary<div class="s-check">✓</div>
+      </div>
+      <div class="sitem" id="sitem3" role="button" tabindex="0">
+        <div class="s-num">4</div>Experience<div class="s-check">✓</div>
+      </div>
+      <div class="sitem" id="sitem4" role="button" tabindex="0">
+        <div class="s-num">5</div>Skills<div class="s-check">✓</div>
+      </div>
+      <div class="sitem" id="sitem5" role="button" tabindex="0">
+        <div class="s-num">6</div>Projects<div class="s-check">✓</div>
+      </div>
+      <div class="sitem" id="sitem6" role="button" tabindex="0">
+        <div class="s-num">7</div>Education<div class="s-check">✓</div>
+      </div>
+      <div class="sitem" id="sitem7" role="button" tabindex="0">
+        <div class="s-num">8</div>Certifications<div class="s-check">✓</div>
+      </div>
+      <div class="sidebar-label">Output</div>
+      <div class="sitem" id="sitem8" role="button" tabindex="0">
+        <div class="s-num">✦</div>Generate &amp; Export<div class="s-check">✓</div>
+      </div>
+      <div class="sb-footer">
+        <div class="prog-wrap">
+          <div class="prog-row"><span>Profile Complete</span><strong id="sbPct">0%</strong></div>
+          <div class="prog-track">
+            <div class="prog-bar" id="sbBar" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="tutorial-btn" id="tutorialBtn" role="button" tabindex="0">📖 How to use this tool</div>
+        <div class="tutorial-btn clear-data-btn" id="clearDataBtn" role="button" tabindex="0">🗑 Clear all data</div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main" id="mainArea">
+
+      <!-- P0: TARGET ROLE -->
+      <div class="panel active" id="panel0">
+        <div class="panel-head">
+          <h1>Target Role</h1>
+          <p>Define your job target and paste the job description. More Job Description = higher ATS score.</p>
+        </div>
+        <div class="tip-box"><span class="tip-icon">💡</span><span><strong>ATS Tip:</strong> Paste the full job posting
+            — responsibilities, requirements, tools. Groq AI extracts exact keyword phrases that ATS parsers scan for,
+            then weaves them throughout your CV.</span></div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Role &amp; Target</span><span class="badge b-key">ATS
+              CRITICAL</span></div>
+          <div class="card-body">
+            <div class="g2">
+              <div class="field"><label>Target Job Title<span class="req">*</span></label><input type="text"
+                  id="targetRole" placeholder="e.g. Staff Nurse, Senior Accountant, Frontend Developer" maxlength="120">
+              </div>
+              <div class="field"><label>Industry</label><input type="text" id="industry"
+                  placeholder="e.g. Healthcare, Finance, Technology" maxlength="80"></div>
+            </div>
+            <div class="g3">
+              <div class="field"><label>Experience Level</label>
+                <select id="expLevel">
+                  <option value="">Select…</option>
+                  <option>Entry Level (0-2 years)</option>
+                  <option>Mid Level (2-5 years)</option>
+                  <option>Senior Level (5-8 years)</option>
+                  <option>Lead / Principal (8+ years)</option>
+                  <option>Executive / Director</option>
+                </select>
+              </div>
+              <div class="field"><label>Country / Region</label><input type="text" id="country"
+                  placeholder="e.g. United Kingdom, UAE, India" maxlength="60"></div>
+              <div class="field"><label>CV Format</label>
+                <select id="cvFormat">
+                  <option value="Chronological">Chronological</option>
+                  <option value="Functional">Functional (Skills-based)</option>
+                  <option value="Hybrid">Hybrid</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Job Description <span class="badge b-key">PASTE
+                HERE</span></span><button class="btn btn-ai btn-sm" id="kwBtn">✦ Extract Keywords</button></div>
+          <div class="card-body">
+            <div class="field"><textarea id="jobDescription" style="min-height:170px"
+                placeholder="Paste the full job posting here — responsibilities, requirements, preferred qualifications, tools.&#10;&#10;Groq AI reads this to extract ATS keywords and tailor every section of your CV.&#10;&#10;💡 More job description = higher ATS score match."
+                maxlength="10000"></textarea></div>
+            <div id="kwAlert" class="alert a-info show">💡 Paste a job description and click "Extract Keywords" to see
+              what ATS systems will look for.</div>
+            <div id="kwResult" style="display:none">
+              <div
+                style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">
+                Extracted ATS Keywords</div>
+              <div class="kw-grid" id="kwGrid"></div>
+            </div>
+          </div>
+        </div>
+        <div class="nav-row"><span></span><button class="btn btn-primary btn-lg" data-nav="1">Personal Info →</button>
+        </div>
+      </div>
+
+      <!-- P1: PERSONAL INFO -->
+      <div class="panel" id="panel1">
+        <div class="panel-head">
+          <h1>Personal Info</h1>
+          <p>Contact details and online presence. LinkedIn URL significantly boosts ATS ranking.</p>
+        </div>
+        <div class="tip-box"><span class="tip-icon">📌</span><span>Use a professional email (not nicknames). City +
+            Country only — no full address for privacy. LinkedIn URL must be complete.</span></div>
+        <div class="card">
+          <div class="card-body">
+            <div class="g2">
+              <div class="field"><label>Full Name<span class="req">*</span></label><input type="text" id="fullName"
+                  placeholder="e.g. Sarah Johnson" maxlength="100"></div>
+              <div class="field"><label>Professional Title</label><input type="text" id="proTitle"
+                  placeholder="e.g. Senior Software Engineer" maxlength="120"></div>
+            </div>
+            <div class="g2">
+              <div class="field"><label>Email<span class="req">*</span></label><input type="email" id="email"
+                  placeholder="sarah@example.com" maxlength="120"></div>
+              <div class="field"><label>Phone</label><input type="tel" id="phone" placeholder="+44 7700 900000"
+                  maxlength="30"></div>
+            </div>
+            <div class="g2">
+              <div class="field"><label>City, Country</label><input type="text" id="location"
+                  placeholder="London, United Kingdom" maxlength="120"></div>
+              <div class="field"><label>LinkedIn URL</label><input type="url" id="linkedin"
+                  placeholder="linkedin.com/in/sarahjohnson" maxlength="200"></div>
+            </div>
+            <div class="g2">
+              <div class="field"><label>GitHub URL</label><input type="url" id="github"
+                  placeholder="github.com/sarahjohnson" maxlength="200"></div>
+              <div class="field"><label>Portfolio / Website</label><input type="url" id="portfolio"
+                  placeholder="sarahjohnson.dev" maxlength="200"></div>
+            </div>
+          </div>
+        </div>
+        <div class="nav-row"><button class="btn btn-ghost" data-nav="0">← Back</button><button
+            class="btn btn-primary btn-lg" data-nav="2">Summary →</button></div>
+      </div>
+
+      <!-- P2: SUMMARY -->
+      <div class="panel" id="panel2">
+        <div class="panel-head">
+          <h1>Professional Summary</h1>
+          <p>A 3–5 line keyword-dense opener. Groq AI writes it from your data, tailored to your target role.</p>
+        </div>
+        <div class="tip-box"><span class="tip-icon">⚡</span><span>The summary is the first thing ATS and recruiters
+            read. Aim for 60–90 words. Pack with exact keywords from the job description.</span></div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Background Context</span></div>
+          <div class="card-body">
+            <div class="g2">
+              <div class="field"><label>Years of Experience</label><input type="number" id="yearsExp" min="0" max="50"
+                  placeholder="e.g. 5"></div>
+              <div class="field"><label>Core Specialization</label><input type="text" id="specialization"
+                  placeholder="e.g. Backend Engineering, Patient Care" maxlength="120"></div>
+            </div>
+            <div class="field"><label>Top Tools &amp; Technologies <span class="badge b-key">ATS
+                  KEY</span></label><input type="text" id="topSkills"
+                placeholder="e.g. Python, AWS, React.js, SQL — use exact names from job posting" maxlength="300"></div>
+            <div class="field"><label>Key Achievements (for AI context)</label><textarea id="achievements"
+                style="min-height:80px"
+                placeholder="e.g.&#10;- Managed ward of 30+ patients&#10;- Led team of 8 engineers&#10;- Reduced costs by 28%"
+                maxlength="2000"></textarea></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Summary Text <span class="badge b-groq">GROQ
+                AI</span></span><button class="btn btn-ai btn-sm" id="aiSumBtn">✦ Generate with Groq</button></div>
+          <div class="card-body">
+            <div id="sumAlert" class="alert a-info show">Fill in background above, then click "Generate with Groq" — or
+              type your own below.</div>
+            <div class="field"><textarea id="summary" style="min-height:115px"
+                placeholder="Your professional summary will appear here…" maxlength="2000"></textarea></div>
+          </div>
+        </div>
+        <div class="nav-row"><button class="btn btn-ghost" data-nav="1">← Back</button><button
+            class="btn btn-primary btn-lg" data-nav="3">Experience →</button></div>
+      </div>
+
+      <!-- P3: EXPERIENCE -->
+      <div class="panel" id="panel3">
+        <div class="panel-head">
+          <h1>Work Experience</h1>
+          <p>Add roles in reverse chronological order. AI enhances your bullets with action verbs and metrics.</p>
+        </div>
+        <div class="tip-box"><span class="tip-icon">📝</span><span>List technologies with <strong>exact names</strong>
+            as in the job posting — "React.js" not "React". ATS does literal string matching. Use quantified
+            achievements: "Increased X by Y%" scores higher.</span></div>
+        <div class="card">
+          <div class="card-body">
+            <div class="entry-list" id="expList"></div>
+            <div class="add-entry" data-modal="exp" role="button" tabindex="0">+ Add work experience</div>
+          </div>
+        </div>
+        <div class="nav-row"><button class="btn btn-ghost" data-nav="2">← Back</button><button
+            class="btn btn-primary btn-lg" data-nav="4">Skills →</button></div>
+      </div>
+
+      <!-- P4: SKILLS -->
+      <div class="panel" id="panel4">
+        <div class="panel-head">
+          <h1>Skills</h1>
+          <p>Use exact tool/technology names as they appear in job postings. ATS matches literal strings.</p>
+        </div>
+        <div class="tip-box"><span class="tip-icon">🔍</span><span>Copy-paste skill names exactly from the Job
+            Description. "Node.js" ≠ "NodeJS" ≠ "Node" — they're different ATS strings.</span></div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Skills Library</span><button class="btn btn-ai btn-sm"
+              id="aiSkillBtn">✦ Extract from Job Description</button></div>
+          <div class="card-body">
+            <div class="field"><label>Technical — languages, frameworks <span class="badge b-key">ATS KEY</span></label>
+              <div class="chip-row"><input type="text" id="techInput" placeholder="React.js, TypeScript, Python…"
+                  maxlength="200"><button class="btn btn-sm" data-skill="tech">+ Add</button></div>
+              <div class="chip-wrap" id="techTags"></div>
+            </div>
+            <div class="field"><label>Tools &amp; Platforms</label>
+              <div class="chip-row"><input type="text" id="toolInput" placeholder="AWS, Docker, Jira, Figma…"
+                  maxlength="200"><button class="btn btn-sm" data-skill="tool">+ Add</button></div>
+              <div class="chip-wrap" id="toolTags"></div>
+            </div>
+            <div class="field"><label>Methodologies &amp; Concepts</label>
+              <div class="chip-row"><input type="text" id="methInput" placeholder="Agile, CI/CD, REST APIs, Scrum…"
+                  maxlength="200"><button class="btn btn-sm" data-skill="meth">+ Add</button></div>
+              <div class="chip-wrap" id="methTags"></div>
+            </div>
+            <div class="field"><label>Soft Skills (max 3–4)</label>
+              <div class="chip-row"><input type="text" id="softInput" placeholder="Leadership, Communication…"
+                  maxlength="200"><button class="btn btn-sm" data-skill="soft">+ Add</button></div>
+              <div class="chip-wrap" id="softTags"></div>
+            </div>
+            <div class="field"><label>Languages Spoken</label>
+              <div class="chip-row"><input type="text" id="langInput" placeholder="English (Native), Spanish (B2)…"
+                  maxlength="200"><button class="btn btn-sm" data-skill="lang">+ Add</button></div>
+              <div class="chip-wrap" id="langTags"></div>
+            </div>
+          </div>
+        </div>
+        <div class="nav-row"><button class="btn btn-ghost" data-nav="3">← Back</button><button
+            class="btn btn-primary btn-lg" data-nav="5">Projects →</button></div>
+      </div>
+
+      <!-- P5: PROJECTS -->
+      <div class="panel" id="panel5">
+        <div class="panel-head">
+          <h1>Projects</h1>
+          <p>Use exact technology names. "React.js" scores; "frontend framework" doesn't.</p>
+        </div>
+        <div class="tip-box"><span class="tip-icon">📊</span><span>Include impact metrics ("500+ users", "30% faster
+            load time"). Add GitHub/live links — some ATS systems parse these.</span></div>
+        <div class="card">
+          <div class="card-body">
+            <div class="entry-list" id="projList"></div>
+            <div class="add-entry" data-modal="proj" role="button" tabindex="0">+ Add project</div>
+          </div>
+        </div>
+        <div class="nav-row"><button class="btn btn-ghost" data-nav="4">← Back</button><button
+            class="btn btn-primary btn-lg" data-nav="6">Education →</button></div>
+      </div>
+
+      <!-- P6: EDUCATION -->
+      <div class="panel" id="panel6">
+        <div class="panel-head">
+          <h1>Education</h1>
+          <p>List degrees and diplomas. Include relevant coursework if you're early-career.</p>
+        </div>
+        <div class="tip-box"><span class="tip-icon">🏫</span><span>Spell out degree names in full — "Bachelor of Science
+            in Computer Science". Include CGPA only if 3.5+ or 2:1 equivalent.</span></div>
+        <div class="card">
+          <div class="card-body">
+            <div class="entry-list" id="eduList"></div>
+            <div class="add-entry" data-modal="edu" role="button" tabindex="0">+ Add education</div>
+          </div>
+        </div>
+        <div class="nav-row"><button class="btn btn-ghost" data-nav="5">← Back</button><button
+            class="btn btn-primary btn-lg" data-nav="7">Certifications →</button></div>
+      </div>
+
+      <!-- P7: CERTIFICATIONS -->
+      <div class="panel" id="panel7">
+        <div class="panel-head">
+          <h1>Certifications</h1>
+          <p>Industry certifications ranked high by ATS. AWS, Google, Microsoft certs especially valued.</p>
+        </div>
+        <div class="tip-box"><span class="tip-icon">📑</span><span>Use official certification names and include the
+            issuing organization. List the most relevant and recent certifications first.</span></div>
+        <div class="card">
+          <div class="card-body">
+            <div class="entry-list" id="certList"></div>
+            <div class="add-entry" data-modal="cert" role="button" tabindex="0">+ Add certification</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Additional Info</span></div>
+          <div class="card-body">
+            <div class="field"><label>Awards &amp; Honors</label><textarea id="awards" style="min-height:70px"
+                placeholder="Employee of the Month (2023), Dean's List…" maxlength="1000"></textarea></div>
+            <div class="field"><label>Volunteer Work</label><textarea id="volunteer" style="min-height:70px"
+                placeholder="Teaching assistant, community health worker…" maxlength="1000"></textarea></div>
+            <div class="field"><label>Professional Memberships</label><input type="text" id="memberships"
+                placeholder="IEEE, BMA, ACCA, PMI…" maxlength="200"></div>
+          </div>
+        </div>
+        <div class="nav-row"><button class="btn btn-ghost" data-nav="6">← Back</button><button
+            class="btn btn-primary btn-lg" data-nav="8">Generate CV →</button></div>
+      </div>
+
+      <!-- P8: GENERATE & EXPORT -->
+      <div class="panel" id="panel8">
+        <div class="panel-head">
+          <h1>✦ Generate &amp; Export</h1>
+          <p>Groq AI generates your ATS-optimized CV. Edit inline, then export as PDF, RTF, or plain text.</p>
+        </div>
+
+        <div class="groq-info">
+          <span class="groq-info-icon">⚡</span>
+          <span>Powered by <strong style="color:var(--purple)">Groq · llama-3.3-70b-versatile</strong> — fastest AI
+            inference available. Uses a deep ATS expert system prompt ensuring keyword density, clean formatting, and
+            recruiter-ready structure. Free API key required from console.groq.com.</span>
+        </div>
+
+        <div class="card" id="scoreCard" style="display:none">
+          <div class="card-head"><span class="card-title">ATS Analysis</span><span class="badge b-groq">GROQ
+              SCORED</span></div>
+          <div class="score-card-inner">
+            <div class="score-row">
+              <div>
+                <div class="score-val high" id="scoreVal">0</div>
+                <div class="score-label">ATS Match Score</div>
+              </div>
+              <div class="score-track">
+                <div class="score-fill" id="scoreFill"></div>
+              </div>
+              <div style="font-size:12px;color:var(--text2)">/100</div>
+            </div>
+            <div class="score-items" id="scoreItems"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head" style="flex-wrap:wrap;gap:.5rem">
+            <span class="card-title">CV Output <span id="editBadge" class="badge b-ai"
+                style="display:none">EDITING</span></span>
+            <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+              <button class="btn btn-ai btn-sm" id="genBtn">✦ Generate with Groq</button>
+              <button class="btn btn-sm" id="editBtn" style="display:none">✎ Edit CV</button>
+              <button class="btn btn-ai btn-sm" id="polishBtn" style="display:none">✦ AI Polish</button>
+            </div>
+          </div>
+          <div class="edit-mode-bar" id="editModeBar">
+            <span style="font-size:12px">✎ Edit mode — click directly in the CV text to modify anything.</span>
+            <div style="display:flex;gap:.35rem">
+              <button class="btn btn-sm btn-green" id="saveEditBtn">✓ Done Editing</button>
+              <button class="btn btn-sm btn-danger" id="cancelEditBtn">✕ Cancel</button>
+            </div>
+          </div>
+          <div class="cv-toolbar" id="cvToolbar" style="display:none">
+            <button class="btn btn-sm btn-green" id="exportPdfBtn">⬇ PDF</button>
+            <button class="btn btn-sm btn-purple" id="exportRtfBtn">⬇ Word / RTF</button>
+            <button class="btn btn-sm" id="downloadTxtBtn">⬇ TXT</button>
+            <button class="btn btn-sm" id="exportHtmlBtn">⬇ HTML</button>
+            <button class="btn btn-sm btn-ghost" id="copyCvBtn">⧉ Copy</button>
+          </div>
+          <div id="aiStatusBar" class="ai-status" style="display:none;margin-bottom:.75rem">
+            <div class="ai-pulse active"></div>
+            <span id="aiStatusText">Groq is writing your CV…</span>
+          </div>
+          <div id="genErr" class="alert a-err" style="margin-bottom:.75rem"></div>
+          <div id="cvEmptyState" class="cv-empty">
+            <div class="cv-empty-icon">📄</div>
+            <h3>Your ATS CV will appear here</h3>
+            <p>Fill in your details, set your Groq API key, then click "Generate with Groq".</p>
+            <button class="btn btn-ai btn-sm" style="margin-top:.5rem" id="setKeyEmptyBtn">🔑 Set Groq API Key</button>
+          </div>
+          <div id="cvOutput" class="cv-preview" style="display:none" spellcheck="true"></div>
+        </div>
+
+        <div class="card" id="exportCard" style="display:none">
+          <div class="card-head"><span class="card-title">Export &amp; Send</span><span class="badge b-new">PRODUCTION
+              READY</span></div>
+          <div class="export-grid">
+            <div class="export-card">
+              <div class="export-card-head"><span class="export-icon">📄</span>
+                <div class="export-info">
+                  <h4>PDF — Recommended</h4>
+                  <p>Best for email attachments. Works with all ATS systems. Opens print dialog for precise control.</p>
+                </div>
+              </div><button class="btn btn-green btn-block" id="expPdfCard">⬇ Download PDF</button>
+            </div>
+            <div class="export-card">
+              <div class="export-card-head"><span class="export-icon">📝</span>
+                <div class="export-info">
+                  <h4>Word / RTF Document</h4>
+                  <p>Editable in Microsoft Word, Google Docs, and LibreOffice. HR teams often request this format.</p>
+                </div>
+              </div><button class="btn btn-purple btn-block" id="expRtfCard">⬇ Download RTF (Word)</button>
+            </div>
+            <div class="export-card">
+              <div class="export-card-head"><span class="export-icon">📋</span>
+                <div class="export-info">
+                  <h4>Plain Text (.txt)</h4>
+                  <p>Maximum ATS compatibility. Use for pasting into online application portals.</p>
+                </div>
+              </div><button class="btn btn-block" id="expTxtCard">⬇ Download TXT</button>
+            </div>
+            <div class="export-card">
+              <div class="export-card-head"><span class="export-icon">🌐</span>
+                <div class="export-info">
+                  <h4>HTML File</h4>
+                  <p>Open in browser → Print → Save as PDF for custom layout control.</p>
+                </div>
+              </div><button class="btn btn-block" id="expHtmlCard">⬇ Download HTML</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="kwGapCard" style="display:none">
+          <div class="card-head"><span class="card-title">Keyword Gap Analysis</span><span class="badge b-key">ATS
+              MATCH</span></div>
+          <div class="card-body">
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:.4rem">✓ Found in your CV
+              </div>
+              <div class="kw-grid" id="kwFound"></div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--red);margin-bottom:.4rem">✗ Missing — add these to
+                boost score</div>
+              <div class="kw-grid" id="kwMissing"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-row"><button class="btn btn-ghost" data-nav="7">← Back</button><button class="btn btn-ai btn-lg"
+            id="genBtn2">✦ Regenerate CV</button></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MOBILE NAV -->
+  <nav class="mobile-nav" id="mobileNav" role="navigation" aria-label="Mobile section navigation">
+    <div class="mnav-item active" id="mn0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" />
+        <circle cx="12" cy="12" r="4" />
+      </svg>Role</div>
+    <div class="mnav-item" id="mn1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>Info</div>
+    <div class="mnav-item" id="mn2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z" />
+      </svg>Sum</div>
+    <div class="mnav-item" id="mn3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="7" width="20" height="14" rx="2" />
+        <path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z" />
+      </svg>Exp</div>
+    <div class="mnav-item" id="mn4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon
+          points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      </svg>Skills</div>
+    <div class="mnav-item" id="mn5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+        <polyline points="22 4 12 14.01 9 11.01" />
+      </svg>Proj</div>
+    <div class="mnav-item" id="mn6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+        <path d="M6 12v5c3 3 9 3 12 0v-5" />
+      </svg>Edu</div>
+    <div class="mnav-item" id="mn7"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="8" r="6" />
+        <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" />
+      </svg>Certs</div>
+    <div class="mnav-item" id="mn8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+      </svg>Gen</div>
+  </nav>
+
+  <!-- ENTRY MODAL -->
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <div class="modal-h">
+        <div class="modal-title" id="modalTitle">Add Entry</div><button class="btn btn-ghost btn-icon btn-sm"
+          id="modalCloseBtn" aria-label="Close dialog">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer"><button class="btn btn-ghost btn-sm" id="modalCancelBtn">Cancel</button><button
+          class="btn btn-primary btn-sm" id="modalSaveBtn">Save Entry</button></div>
+    </div>
+  </div>
+
+  <!-- API KEY MODAL -->
+  <div class="overlay" id="apiKeyOverlay" role="dialog" aria-modal="true" aria-labelledby="apiKeyModalTitle">
+    <div class="apikey-modal">
+      <div class="modal-h">
+        <div class="modal-title" id="apiKeyModalTitle">🔑 Groq API Key Setup</div><button
+          class="btn btn-ghost btn-icon btn-sm" id="apiKeyCloseBtn" aria-label="Close dialog">✕</button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:1rem;padding:1.25rem 1.4rem">
+        <div class="groq-info"><span class="groq-info-icon">⚡</span><span>Groq provides <strong>free</strong> API access
+            to llama-3.3-70b. Get your key in 2 minutes — no credit card required.</span></div>
+        <div class="groq-steps">
+          <div class="groq-step">
+            <div class="step-num">1</div><span>Go to <a href="https://console.groq.com" target="_blank"
+                rel="noopener noreferrer">console.groq.com</a> and sign up (free, no card)</span>
+          </div>
+          <div class="groq-step">
+            <div class="step-num">2</div><span>Navigate to <strong>API Keys</strong> in the left sidebar</span>
+          </div>
+          <div class="groq-step">
+            <div class="step-num">3</div><span>Click <strong>"Create API Key"</strong> → copy the key (starts with
+              gsk_)</span>
+          </div>
+          <div class="groq-step">
+            <div class="step-num">4</div><span>Paste it below. Stored only in your browser — never sent anywhere except
+              Groq.</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Groq API Key<span class="req">*</span></label>
+          <input type="password" id="groqKeyInput" placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+          <div class="fhint">Key is stored in your browser's localStorage. Clears when you clear browser data.</div>
+        </div>
+        <div id="apiKeyErr" class="alert a-err"></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost btn-sm" id="apiKeyCancelBtn">Cancel</button><button
+          class="btn btn-primary btn-sm" id="apiKeySaveBtn">Save Key &amp; Activate</button></div>
+    </div>
+  </div>
+
+  <!-- TUTORIAL MODAL -->
+  <div class="tutorial-overlay" id="tutorialOverlay" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
+    <div class="tutorial-modal">
+      <div class="tut-header">
+        <h2 id="tutorialTitle">📖 How to Use CVForge Pro</h2>
+        <p>Build an ATS-optimized, recruiter-ready CV in under 20 minutes using Groq AI.</p>
+      </div>
+      <div class="tut-body">
+        <div class="tut-section">
+          <h3>🚀 Quick Start (5 steps)</h3>
+          <div class="tut-list">
+            <div class="tut-item"><span class="icon">1️⃣</span><span>Get a <strong>free Groq API key</strong> at
+                <strong>console.groq.com</strong> → click "🔑 Set Groq Key" in the top-right corner</span></div>
+            <div class="tut-item"><span class="icon">2️⃣</span><span>Enter your <strong>Target Job Title</strong> on
+                Panel 1 and paste the full <strong>Job Description</strong> → click "Extract Keywords"</span></div>
+            <div class="tut-item"><span class="icon">3️⃣</span><span>Fill <strong>Personal Info → Summary → Experience →
+                  Skills</strong> across all panels. Use the AI buttons to assist each section.</span></div>
+            <div class="tut-item"><span class="icon">4️⃣</span><span>Go to <strong>Generate &amp; Export</strong> (last
+                panel), click "Generate with Groq" — takes 10–20 seconds</span></div>
+            <div class="tut-item"><span class="icon">5️⃣</span><span>Review your CV, click <strong>"Edit CV"</strong> to
+                tweak inline, then export as <strong>PDF or RTF</strong> to send</span></div>
+          </div>
+        </div>
+        <div class="tut-section">
+          <h3>🤖 AI Features Explained</h3>
+          <div class="tut-grid">
+            <div class="tut-card">
+              <h4>✦ Extract Keywords</h4>
+              <p>Reads your job description and extracts exact ATS keyword phrases. Use these to populate your Skills
+                section.</p>
+            </div>
+            <div class="tut-card">
+              <h4>✦ Generate Summary</h4>
+              <p>Groq writes a keyword-dense professional summary tailored to your role. Always review and edit to sound
+                authentic.</p>
+            </div>
+            <div class="tut-card">
+              <h4>✦ AI Enhance Bullets</h4>
+              <p>Transforms vague responsibilities into powerful ATS bullets with action verbs and metrics.</p>
+            </div>
+            <div class="tut-card">
+              <h4>✦ AI Polish</h4>
+              <p>After generating, AI reviews the full CV and strengthens weak verbs, adds specificity, and fixes
+                formatting.</p>
+            </div>
+          </div>
+        </div>
+        <div class="tut-section">
+          <h3>📤 Which Export Format to Use</h3>
+          <div class="tut-list">
+            <div class="tut-item"><span class="icon">📄</span><span><strong>PDF</strong> — Use for 90% of applications.
+                Opens print dialog — set "Save as PDF".</span></div>
+            <div class="tut-item"><span class="icon">📝</span><span><strong>RTF / Word</strong> — When employer requests
+                Word format. Opens in Word, Google Docs, and LibreOffice.</span></div>
+            <div class="tut-item"><span class="icon">📋</span><span><strong>TXT</strong> — For pasting into online
+                application form text boxes. Maximum ATS compatibility.</span></div>
+            <div class="tut-item"><span class="icon">🌐</span><span><strong>HTML</strong> — Download, open in browser,
+                Ctrl+P → "Save as PDF" for maximum layout control.</span></div>
+          </div>
+        </div>
+        <div class="tut-section">
+          <h3>💡 ATS Optimization Tips</h3>
+          <div class="tut-list">
+            <div class="tut-item"><span class="icon">🎯</span><span>Paste the <strong>specific job description</strong>
+                for each application — not generic.</span></div>
+            <div class="tut-item"><span class="icon">📝</span><span>Use <strong>exact keyword strings</strong>:
+                "React.js" not "React", "Microsoft Azure" not "Azure cloud".</span></div>
+            <div class="tut-item"><span class="icon">📊</span><span>Quantify everything: "Managed team" → "Managed team
+                of 12 engineers across 3 time zones".</span></div>
+            <div class="tut-item"><span class="icon">🚫</span><span>Never use tables, columns, or graphics in your ATS
+                submission — they confuse parsers.</span></div>
+            <div class="tut-item"><span class="icon">🔄</span><span>Customize for each role: change Target Role + paste
+                new Job Description + click Regenerate.</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="tut-footer"><button class="btn btn-primary" id="tutorialCloseBtn">Got it — Start Building ✦</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
