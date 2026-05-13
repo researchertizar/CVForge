@@ -10,8 +10,8 @@
 
   /* ── CONSTANTS ── */
   const STORAGE_KEY = "cvforge_pro_data_v2";
-  const GROQ_MODEL  = "llama-3.3-70b-versatile";
-  const GROQ_API    = "https://api.groq.com/openai/v1/chat/completions";
+  const GROQ_MODEL = "llama-3.3-70b-versatile";
+  const GROQ_API = "https://api.groq.com/openai/v1/chat/completions";
 
   const GROQ_CV_SYSTEM = `You are a senior professional CV writer and ATS optimization specialist with 15+ years experience at top recruitment agencies. Your CVs score 90%+ on ATS systems: Workday, Taleo, iCIMS, Greenhouse, Lever.
 
@@ -33,28 +33,46 @@ ABSOLUTE RULES — never break these:
 
   /* ── STATE ── */
   const data = {
-    experiences:    [],
-    projects:       [],
-    education:      [],
+    experiences: [],
+    projects: [],
+    education: [],
     certifications: [],
     skills: { tech: [], tool: [], meth: [], soft: [], lang: [] },
-    keywords:       [],
+    keywords: [],
   };
-  let currentPanel  = 0;
-  let modalType     = "";
-  let modalEditIdx  = -1;
-  let cvGenerated   = false;
-  let editMode      = false;
-  let cvBackup      = "";
-  let saveTimer     = null;
-  let toastTimer    = null;
+  let currentPanel = 0;
+  let modalType = "";
+  let modalEditIdx = -1;
+  let cvGenerated = false;
+  let editMode = false;
+  let cvBackup = "";
+  let saveTimer = null;
+  let toastTimer = null;
 
   /* ── FIELD IDS for auto-save ── */
   const FIELD_IDS = [
-    "targetRole","industry","expLevel","country","cvFormat","jobDescription",
-    "fullName","proTitle","email","phone","location","linkedin","github","portfolio",
-    "yearsExp","specialization","topSkills","achievements","summary",
-    "awards","volunteer","memberships",
+    "targetRole",
+    "industry",
+    "expLevel",
+    "country",
+    "cvFormat",
+    "jobDescription",
+    "fullName",
+    "proTitle",
+    "email",
+    "phone",
+    "location",
+    "linkedin",
+    "github",
+    "portfolio",
+    "yearsExp",
+    "specialization",
+    "topSkills",
+    "achievements",
+    "summary",
+    "awards",
+    "volunteer",
+    "memberships",
   ];
 
   /* ── SKILL MAP ── */
@@ -85,7 +103,9 @@ ABSOLUTE RULES — never break these:
   }
 
   function escapeAttr(str) {
-    return String(str || "").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    return String(str || "")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 
   function safeStr(v) {
@@ -95,10 +115,16 @@ ABSOLUTE RULES — never break these:
   function extractJSON(raw) {
     /* Strip markdown code fences if present */
     const clean = raw.replace(/```json|```/gi, "").trim();
-    try { return JSON.parse(clean); } catch (_) {}
+    try {
+      return JSON.parse(clean);
+    } catch (_) {}
     /* Try extracting first {...} or [...] block */
     const obj = clean.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
-    if (obj) { try { return JSON.parse(obj[1]); } catch (_) {} }
+    if (obj) {
+      try {
+        return JSON.parse(obj[1]);
+      } catch (_) {}
+    }
     return null;
   }
 
@@ -145,12 +171,12 @@ ABSOLUTE RULES — never break these:
       const snapshot = {
         fields: {},
         data: {
-          experiences:    data.experiences,
-          projects:       data.projects,
-          education:      data.education,
+          experiences: data.experiences,
+          projects: data.projects,
+          education: data.education,
           certifications: data.certifications,
-          skills:         data.skills,
-          keywords:       data.keywords,
+          skills: data.skills,
+          keywords: data.keywords,
         },
         cvGenerated,
         currentPanel,
@@ -184,12 +210,13 @@ ABSOLUTE RULES — never break these:
       /* Restore arrays */
       if (snap.data) {
         const d = snap.data;
-        if (Array.isArray(d.experiences))    data.experiences    = d.experiences;
-        if (Array.isArray(d.projects))       data.projects       = d.projects;
-        if (Array.isArray(d.education))      data.education      = d.education;
-        if (Array.isArray(d.certifications)) data.certifications = d.certifications;
+        if (Array.isArray(d.experiences)) data.experiences = d.experiences;
+        if (Array.isArray(d.projects)) data.projects = d.projects;
+        if (Array.isArray(d.education)) data.education = d.education;
+        if (Array.isArray(d.certifications))
+          data.certifications = d.certifications;
         if (d.skills) {
-          ["tech","tool","meth","soft","lang"].forEach((k) => {
+          ["tech", "tool", "meth", "soft", "lang"].forEach((k) => {
             if (Array.isArray(d.skills[k])) data.skills[k] = d.skills[k];
           });
         }
@@ -211,15 +238,17 @@ ABSOLUTE RULES — never break these:
       }
       cvGenerated = !!snap.cvGenerated;
       /* Render lists & tags */
-      ["exp","proj","edu","cert"].forEach(renderList);
+      ["exp", "proj", "edu", "cert"].forEach(renderList);
       Object.keys(SKILL_MAP).forEach(renderTags);
       /* Restore keywords */
       if (data.keywords.length) {
         $("kwGrid").innerHTML = data.keywords
-          .map((k) => `<span class="kw kw-found">${escapeHtml(k)}</span>`).join("");
+          .map((k) => `<span class="kw kw-found">${escapeHtml(k)}</span>`)
+          .join("");
         $("kwResult").style.display = "block";
         $("kwAlert").className = "alert a-success show";
-        $("kwAlert").textContent = `✓ ${data.keywords.length} ATS keywords loaded.`;
+        $("kwAlert").textContent =
+          `✓ ${data.keywords.length} ATS keywords loaded.`;
       }
     } catch (e) {
       console.warn("Load failed:", e);
@@ -240,18 +269,18 @@ ABSOLUTE RULES — never break these:
   }
 
   function updateKeyUI() {
-    const k   = getKey();
+    const k = getKey();
     const btn = $("apiKeyBtn");
-    const st  = $("apiKeyStatus");
+    const st = $("apiKeyStatus");
     if (!btn || !st) return;
     if (k) {
-      st.textContent       = "Key Active ✓";
+      st.textContent = "Key Active ✓";
       btn.style.borderColor = "rgba(34,211,160,.35)";
-      btn.style.color       = "var(--green)";
+      btn.style.color = "var(--green)";
     } else {
-      st.textContent       = "Set Groq Key";
+      st.textContent = "Set Groq Key";
       btn.style.borderColor = "";
-      btn.style.color       = "";
+      btn.style.color = "";
     }
   }
 
@@ -282,7 +311,8 @@ ABSOLUTE RULES — never break these:
     if (!k || !k.startsWith("gsk_")) {
       if (errEl) {
         errEl.className = "alert a-err show";
-        errEl.textContent = "Key must start with gsk_ — copy it exactly from console.groq.com";
+        errEl.textContent =
+          "Key must start with gsk_ — copy it exactly from console.groq.com";
       }
       return;
     }
@@ -306,12 +336,12 @@ ABSOLUTE RULES — never break these:
     const res = await fetch(GROQ_API, {
       method: "POST",
       headers: {
-        "Content-Type":  "application/json",
-        "Authorization": "Bearer " + key,
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + key,
       },
       body: JSON.stringify({
-        model:      GROQ_MODEL,
-        messages:   msgs,
+        model: GROQ_MODEL,
+        messages: msgs,
         max_tokens: maxTokens || 4096,
         temperature: 0.7,
       }),
@@ -323,8 +353,10 @@ ABSOLUTE RULES — never break these:
         const errBody = await res.json();
         errMsg = errBody?.error?.message || errMsg;
       } catch (_) {}
-      if (res.status === 401) errMsg = "Invalid Groq API key — re-enter at console.groq.com";
-      if (res.status === 429) errMsg = "Rate limit reached — wait 30 seconds and try again";
+      if (res.status === 401)
+        errMsg = "Invalid Groq API key — re-enter at console.groq.com";
+      if (res.status === 429)
+        errMsg = "Rate limit reached — wait 30 seconds and try again";
       throw new Error(errMsg);
     }
 
@@ -335,15 +367,15 @@ ABSOLUTE RULES — never break these:
   /* ── NAVIGATION ── */
   function goTo(n) {
     if (n < 0 || n > 8) return;
-    document.querySelectorAll(".panel").forEach((p, i) =>
-      p.classList.toggle("active", i === n)
-    );
-    document.querySelectorAll(".sitem").forEach((s, i) =>
-      s.classList.toggle("active", i === n)
-    );
-    document.querySelectorAll(".mnav-item").forEach((m, i) =>
-      m.classList.toggle("active", i === n)
-    );
+    document
+      .querySelectorAll(".panel")
+      .forEach((p, i) => p.classList.toggle("active", i === n));
+    document
+      .querySelectorAll(".sitem")
+      .forEach((s, i) => s.classList.toggle("active", i === n));
+    document
+      .querySelectorAll(".mnav-item")
+      .forEach((m, i) => m.classList.toggle("active", i === n));
     currentPanel = n;
     window.scrollTo({ top: 0, behavior: "smooth" });
     updateProgress();
@@ -386,21 +418,30 @@ ABSOLUTE RULES — never break these:
   /* ── Extract Keywords ── */
   async function aiExtractKeywords() {
     const jd = g("jobDescription");
-    if (!jd) { showToast("Paste a job description first"); return; }
+    if (!jd) {
+      showToast("Paste a job description first");
+      return;
+    }
     setBtnLoading("kwBtn", true);
     try {
       const res = await callGroq(
         `Extract the most important ATS keywords from this job description. Return ONLY a JSON array of strings — use verbatim phrases as they appear. No code blocks, no explanation:\n"${jd.slice(0, 4000)}"`,
-        "You are an ATS keyword extraction specialist. Extract verbatim keyword phrases ATS systems scan for. Return only a valid JSON array of strings. Include technologies, tools, skills, qualifications, and role-specific terms."
+        "You are an ATS keyword extraction specialist. Extract verbatim keyword phrases ATS systems scan for. Return only a valid JSON array of strings. Include technologies, tools, skills, qualifications, and role-specific terms.",
       );
       const kws = extractJSON(res);
       const arr = Array.isArray(kws) ? kws : [];
-      if (!arr.length) { showToast("No keywords parsed — try again", "error"); return; }
+      if (!arr.length) {
+        showToast("No keywords parsed — try again", "error");
+        return;
+      }
       data.keywords = arr;
-      $("kwGrid").innerHTML = arr.map((k) => `<span class="kw kw-found">${escapeHtml(k)}</span>`).join("");
+      $("kwGrid").innerHTML = arr
+        .map((k) => `<span class="kw kw-found">${escapeHtml(k)}</span>`)
+        .join("");
       $("kwResult").style.display = "block";
       $("kwAlert").className = "alert a-success show";
-      $("kwAlert").textContent = `✓ ${arr.length} ATS keywords extracted — woven throughout your CV.`;
+      $("kwAlert").textContent =
+        `✓ ${arr.length} ATS keywords extracted — woven throughout your CV.`;
       showToast(`✓ ${arr.length} keywords extracted`, "success");
       saveAllData();
     } catch (e) {
@@ -411,15 +452,18 @@ ABSOLUTE RULES — never break these:
 
   /* ── Generate Summary ── */
   async function aiSummary() {
-    const role   = g("targetRole");
-    const yrs    = g("yearsExp");
-    const spec   = g("specialization");
+    const role = g("targetRole");
+    const yrs = g("yearsExp");
+    const spec = g("specialization");
     const skills = g("topSkills");
-    const ach    = g("achievements");
-    const jd     = g("jobDescription");
+    const ach = g("achievements");
+    const jd = g("jobDescription");
     setBtnLoading("aiSumBtn", true);
     const al = $("sumAlert");
-    if (al) { al.className = "alert a-info show"; al.textContent = "⟳ Groq is writing your summary…"; }
+    if (al) {
+      al.className = "alert a-info show";
+      al.textContent = "⟳ Groq is writing your summary…";
+    }
     try {
       const res = await callGroq(
         `Write a professional ATS-optimized CV summary:
@@ -433,16 +477,22 @@ ${jd ? "Job Description Keywords to embed:\n" + jd.slice(0, 1500) : ""}
 Requirements: 3-4 sentences, 60-90 words. Start with years of experience and role title. Pack with exact ATS keywords from the JD. Include 2-3 specific technologies. No first-person pronouns. No clichés like "results-driven" or "passionate".
 
 Return ONLY the summary text, no labels, no quotes.`,
-        "You are a senior CV writer and ATS specialist. You write keyword-dense, professionally compelling summaries that score 90%+ on ATS systems while engaging human recruiters. Every sentence carries specific value. Zero generic filler."
+        "You are a senior CV writer and ATS specialist. You write keyword-dense, professionally compelling summaries that score 90%+ on ATS systems while engaging human recruiters. Every sentence carries specific value. Zero generic filler.",
       );
       const summaryEl = $("summary");
       if (summaryEl) summaryEl.value = res.trim();
-      if (al) { al.className = "alert a-success show"; al.textContent = "✓ Summary generated! Review and edit as needed."; }
+      if (al) {
+        al.className = "alert a-success show";
+        al.textContent = "✓ Summary generated! Review and edit as needed.";
+      }
       updateProgress();
       showToast("✓ Summary generated", "success");
       saveAllData();
     } catch (e) {
-      if (al) { al.className = "alert a-err show"; al.textContent = "Error: " + e.message; }
+      if (al) {
+        al.className = "alert a-err show";
+        al.textContent = "Error: " + e.message;
+      }
       showToast(e.message, "error");
     }
     setBtnLoading("aiSumBtn", false, "✦ Generate with Groq");
@@ -451,7 +501,10 @@ Return ONLY the summary text, no labels, no quotes.`,
   /* ── Extract Skills from JD ── */
   async function aiExtractSkills() {
     const jd = g("jobDescription");
-    if (!jd) { showToast("Go to Panel 1 and paste a job description first"); return; }
+    if (!jd) {
+      showToast("Go to Panel 1 and paste a job description first");
+      return;
+    }
     setBtnLoading("aiSkillBtn", true);
     try {
       const res = await callGroq(
@@ -462,15 +515,21 @@ tool = software tools, platforms, cloud services
 meth = methodologies, concepts, practices
 JD: "${jd.slice(0, 4000)}"
 Return ONLY valid JSON, no explanation, no code blocks.`,
-        "You extract skills from job descriptions into structured JSON. Use verbatim names from the JD. Never paraphrase technology names — exact string matching is critical for ATS."
+        "You extract skills from job descriptions into structured JSON. Use verbatim names from the JD. Never paraphrase technology names — exact string matching is critical for ATS.",
       );
       const parsed = extractJSON(res);
-      if (!parsed) { showToast("Could not parse response — try again", "error"); return; }
+      if (!parsed) {
+        showToast("Could not parse response — try again", "error");
+        return;
+      }
       let added = 0;
       ["tech", "tool", "meth"].forEach((type) => {
         if (Array.isArray(parsed[type])) {
           parsed[type].forEach((s) => {
-            if (s && !data.skills[type].includes(s)) { data.skills[type].push(s); added++; }
+            if (s && !data.skills[type].includes(s)) {
+              data.skills[type].push(s);
+              added++;
+            }
           });
           renderTags(type);
         }
@@ -486,13 +545,19 @@ Return ONLY valid JSON, no explanation, no code blocks.`,
 
   /* ── Enhance Bullets ── */
   async function aiEnhanceBullets(respId, achievId, btnEl) {
-    const resp  = ($(respId)?.value  || "").trim();
+    const resp = ($(respId)?.value || "").trim();
     const achiev = ($(achievId)?.value || "").trim();
-    const role  = g("targetRole");
+    const role = g("targetRole");
     const techEl = $("mf_tech");
     const techVal = techEl ? techEl.value.trim() : "";
-    if (!resp && !achiev) { showToast("Enter responsibilities or achievements first"); return; }
-    if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = '<span class="spinning">⟳</span> Enhancing…'; }
+    if (!resp && !achiev) {
+      showToast("Enter responsibilities or achievements first");
+      return;
+    }
+    if (btnEl) {
+      btnEl.disabled = true;
+      btnEl.innerHTML = '<span class="spinning">⟳</span> Enhancing…';
+    }
     try {
       const res = await callGroq(
         `Rewrite as ATS-optimized CV bullet points:
@@ -514,23 +579,32 @@ RESPONSIBILITIES:
 
 ACHIEVEMENTS:
 [bullets]`,
-        "You are an expert CV writer specializing in ATS optimization. You transform vague job descriptions into quantified, action-verb-led bullet points. Never use passive voice. Every bullet must start with a strong verb."
+        "You are an expert CV writer specializing in ATS optimization. You transform vague job descriptions into quantified, action-verb-led bullet points. Never use passive voice. Every bullet must start with a strong verb.",
       );
       const parts = res.split(/ACHIEVEMENTS:/i);
-      if ($(respId))   $(respId).value   = (parts[0] || "").replace(/RESPONSIBILITIES:/i, "").trim();
+      if ($(respId))
+        $(respId).value = (parts[0] || "")
+          .replace(/RESPONSIBILITIES:/i, "")
+          .trim();
       if ($(achievId)) $(achievId).value = (parts[1] || "").trim();
       showToast("✓ Bullets enhanced with action verbs & metrics", "success");
     } catch (e) {
       showToast("Error: " + e.message, "error");
     }
-    if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = "✦ AI Enhance Bullets"; }
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.innerHTML = "✦ AI Enhance Bullets";
+    }
   }
 
   /* ── AI Polish ── */
   async function aiPolishCV() {
     const out = $("cvOutput");
     const currentCV = out ? out.textContent : "";
-    if (!currentCV.trim()) { showToast("Generate CV first"); return; }
+    if (!currentCV.trim()) {
+      showToast("Generate CV first");
+      return;
+    }
     setBtnLoading("polishBtn", true);
     const jd = g("jobDescription");
     try {
@@ -550,7 +624,7 @@ Instructions:
 - Keep all factual information exactly the same
 
 Return the COMPLETE improved CV. Plain text only, no markdown, no explanation.`,
-        GROQ_CV_SYSTEM
+        GROQ_CV_SYSTEM,
       );
       cvBackup = out.textContent;
       out.textContent = improved;
@@ -568,29 +642,36 @@ Return the COMPLETE improved CV. Plain text only, no markdown, no explanation.`,
   ══════════════════════════════════════ */
   async function generateCV() {
     const role = g("targetRole");
-    if (!role) { goTo(0); showToast("Enter your target job title first"); return; }
-    if (!getKey()) { openApiKeyModal(); return; }
+    if (!role) {
+      goTo(0);
+      showToast("Enter your target job title first");
+      return;
+    }
+    if (!getKey()) {
+      openApiKeyModal();
+      return;
+    }
 
-    const cvOut     = $("cvOutput");
+    const cvOut = $("cvOutput");
     const emptyState = $("cvEmptyState");
-    const toolbar    = $("cvToolbar");
-    const expCard    = $("exportCard");
-    const aiBar      = $("aiStatusBar");
-    const errEl      = $("genErr");
+    const toolbar = $("cvToolbar");
+    const expCard = $("exportCard");
+    const aiBar = $("aiStatusBar");
+    const errEl = $("genErr");
 
     emptyState.style.display = "none";
-    cvOut.style.display      = "none";
-    toolbar.style.display    = "none";
+    cvOut.style.display = "none";
+    toolbar.style.display = "none";
     if (expCard) expCard.style.display = "none";
-    aiBar.style.display      = "flex";
-    errEl.className          = "alert a-err";
-    $("genBtn").disabled     = true;
-    $("genBtn2").disabled    = true;
-    $("scoreCard").style.display   = "none";
-    $("kwGapCard").style.display   = "none";
-    $("editBtn").style.display     = "none";
-    $("polishBtn").style.display   = "none";
-    $("editBadge").style.display   = "none";
+    aiBar.style.display = "flex";
+    errEl.className = "alert a-err";
+    $("genBtn").disabled = true;
+    $("genBtn2").disabled = true;
+    $("scoreCard").style.display = "none";
+    $("kwGapCard").style.display = "none";
+    $("editBtn").style.display = "none";
+    $("polishBtn").style.display = "none";
+    $("editBadge").style.display = "none";
 
     const statuses = [
       "Analyzing job description keywords…",
@@ -610,78 +691,87 @@ Return the COMPLETE improved CV. Plain text only, no markdown, no explanation.`,
 
     try {
       const prompt = buildCVPrompt();
-      const cv     = await callGroq(prompt, GROQ_CV_SYSTEM, 4096);
+      const cv = await callGroq(prompt, GROQ_CV_SYSTEM, 4096);
       clearInterval(ticker);
 
-      aiBar.style.display  = "none";
-      cvOut.textContent    = cv;
+      aiBar.style.display = "none";
+      cvOut.textContent = cv;
       cvOut.contentEditable = "false";
-      cvOut.style.display  = "block";
+      cvOut.style.display = "block";
       toolbar.style.display = "flex";
       if (expCard) expCard.style.display = "block";
-      $("editBtn").style.display   = "inline-flex";
+      $("editBtn").style.display = "inline-flex";
       $("polishBtn").style.display = "inline-flex";
       cvGenerated = true;
-      cvBackup    = cv;
+      cvBackup = cv;
       updateProgress();
       showToast("✓ ATS CV generated!", "success");
       await runATSScore(cv);
       saveAllData();
     } catch (e) {
       clearInterval(ticker);
-      aiBar.style.display     = "none";
+      aiBar.style.display = "none";
       emptyState.style.display = "flex";
-      errEl.className  = "alert a-err show";
+      errEl.className = "alert a-err show";
       errEl.textContent = "✗ " + e.message;
       showToast(e.message, "error");
     }
-    $("genBtn").disabled  = false;
+    $("genBtn").disabled = false;
     $("genBtn2").disabled = false;
   }
 
   function buildCVPrompt() {
-    const role     = g("targetRole");
+    const role = g("targetRole");
     const industry = g("industry");
-    const level    = g("expLevel");
-    const country  = g("country");
-    const format   = g("cvFormat");
-    const jd       = g("jobDescription");
-    const name     = g("fullName");
-    const title    = g("proTitle");
-    const email    = g("email");
-    const phone    = g("phone");
-    const loc      = g("location");
+    const level = g("expLevel");
+    const country = g("country");
+    const format = g("cvFormat");
+    const jd = g("jobDescription");
+    const name = g("fullName");
+    const title = g("proTitle");
+    const email = g("email");
+    const phone = g("phone");
+    const loc = g("location");
     const linkedin = g("linkedin");
-    const github   = g("github");
+    const github = g("github");
     const portfolio = g("portfolio");
-    const yrs      = g("yearsExp");
-    const spec     = g("specialization");
-    const topsk    = g("topSkills");
-    const ach      = g("achievements");
-    const summary  = g("summary");
+    const yrs = g("yearsExp");
+    const spec = g("specialization");
+    const topsk = g("topSkills");
+    const ach = g("achievements");
+    const summary = g("summary");
 
-    const expStr = data.experiences.map((e) =>
-      `${e.title} at ${e.company} (${e.start}–${e.end || "Present"}) | ${e.etype || ""} | ${e.loc || ""}
+    const expStr = data.experiences
+      .map(
+        (e) =>
+          `${e.title} at ${e.company} (${e.start}–${e.end || "Present"}) | ${e.etype || ""} | ${e.loc || ""}
 Tech: ${e.tech || "N/A"}
 Responsibilities: ${e.resp || "N/A"}
-Achievements: ${e.achiev || "N/A"}`
-    ).join("\n\n");
+Achievements: ${e.achiev || "N/A"}`,
+      )
+      .join("\n\n");
 
-    const projStr = data.projects.map((p) =>
-      `${p.name} | Role: ${p.role || ""} | Tech: ${p.tech || ""}
-${p.desc || ""} | Impact: ${p.impact || ""} | URL: ${p.url || ""}`
-    ).join("\n\n");
+    const projStr = data.projects
+      .map(
+        (p) =>
+          `${p.name} | Role: ${p.role || ""} | Tech: ${p.tech || ""}
+${p.desc || ""} | Impact: ${p.impact || ""} | URL: ${p.url || ""}`,
+      )
+      .join("\n\n");
 
-    const eduStr = data.education.map((e) =>
-      `${e.degree} — ${e.institution} (${e.year || ""}) | ${e.cgpa || ""} | Coursework: ${e.coursework || ""}`
-    ).join("\n");
+    const eduStr = data.education
+      .map(
+        (e) =>
+          `${e.degree} — ${e.institution} (${e.year || ""}) | ${e.cgpa || ""} | Coursework: ${e.coursework || ""}`,
+      )
+      .join("\n");
 
-    const certStr = data.certifications.map((c) =>
-      `${c.name} | ${c.org || ""} | ${c.date || ""}`
-    ).join("\n");
+    const certStr = data.certifications
+      .map((c) => `${c.name} | ${c.org || ""} | ${c.date || ""}`)
+      .join("\n");
 
-    const awards      = g("awards");
-    const volunteer   = g("volunteer");
+    const awards = g("awards");
+    const volunteer = g("volunteer");
     const memberships = g("memberships");
 
     return `Generate a COMPLETE, professionally formatted ATS-optimized CV in ${format || "Chronological"} format targeting: "${role}"
@@ -737,7 +827,7 @@ Generate the COMPLETE, recruitment-ready CV. For any section with insufficient d
     try {
       const res = await callGroq(
         `Score this CV. Return ONLY valid JSON, no markdown:\n{"score":<0-100>,"checks":[{"label":"Keywords matched","pass":true,"detail":""},{"label":"Action verbs used","pass":true,"detail":""},{"label":"Metrics & quantified results","pass":false,"detail":""},{"label":"ATS-parseable format","pass":true,"detail":""},{"label":"Contact info complete","pass":true,"detail":""},{"label":"Relevant experience","pass":true,"detail":""},{"label":"Skills section complete","pass":true,"detail":""},{"label":"Education present","pass":true,"detail":""}],"found_keywords":["..."],"missing_keywords":["..."]}\nJD: ${jd ? jd.slice(0, 1200) : "No JD — score generically"}\nCV: ${cvText.slice(0, 3000)}`,
-        "You are an ATS engine that scores CVs objectively. Analyze keyword density, formatting compliance, structure, and content quality. Return only valid JSON."
+        "You are an ATS engine that scores CVs objectively. Analyze keyword density, formatting compliance, structure, and content quality. Return only valid JSON.",
       );
       const p = extractJSON(res);
       if (!p || typeof p.score !== "number") return;
@@ -745,27 +835,37 @@ Generate the COMPLETE, recruitment-ready CV. For any section with insufficient d
       $("scoreCard").style.display = "block";
       const sv = $("scoreVal");
       sv.textContent = p.score;
-      sv.className = "score-val " + (p.score >= 75 ? "high" : p.score >= 50 ? "mid" : "low");
+      sv.className =
+        "score-val " + (p.score >= 75 ? "high" : p.score >= 50 ? "mid" : "low");
       $("scoreFill").style.width = p.score + "%";
 
       const topPill = $("topScorePill");
-      const topVal  = $("topScoreVal");
+      const topVal = $("topScoreVal");
       if (topPill) topPill.style.display = "flex";
-      if (topVal)  topVal.textContent    = p.score;
+      if (topVal) topVal.textContent = p.score;
 
       if (p.checks) {
         $("scoreItems").innerHTML = p.checks
-          .map((c) => `<div class="score-item ${c.pass ? "pass" : "fail"}">${c.pass ? "✓" : "✗"} ${escapeHtml(c.label)}${c.detail ? " — " + escapeHtml(c.detail) : ""}</div>`)
+          .map(
+            (c) =>
+              `<div class="score-item ${c.pass ? "pass" : "fail"}">${c.pass ? "✓" : "✗"} ${escapeHtml(c.label)}${c.detail ? " — " + escapeHtml(c.detail) : ""}</div>`,
+          )
           .join("");
       }
-      const found   = p.found_keywords   || [];
+      const found = p.found_keywords || [];
       const missing = p.missing_keywords || [];
       if (found.length || missing.length) {
         $("kwGapCard").style.display = "block";
-        $("kwFound").innerHTML   = found.map((k) => `<span class="kw kw-found">${escapeHtml(k)}</span>`).join("");
-        $("kwMissing").innerHTML = missing.map((k) => `<span class="kw kw-missing">${escapeHtml(k)}</span>`).join("");
+        $("kwFound").innerHTML = found
+          .map((k) => `<span class="kw kw-found">${escapeHtml(k)}</span>`)
+          .join("");
+        $("kwMissing").innerHTML = missing
+          .map((k) => `<span class="kw kw-missing">${escapeHtml(k)}</span>`)
+          .join("");
       }
-    } catch (_) { /* silent */ }
+    } catch (_) {
+      /* silent */
+    }
   }
 
   /* ══════════════════════════════════════
@@ -801,7 +901,10 @@ Generate the COMPLETE, recruitment-ready CV. For any section with insufficient d
 
   function cancelEdit() {
     const out = $("cvOutput");
-    if (out) { out.textContent = cvBackup; out.contentEditable = "false"; }
+    if (out) {
+      out.textContent = cvBackup;
+      out.contentEditable = "false";
+    }
     editMode = false;
     $("editModeBar").classList.remove("show");
     $("editBadge").style.display = "none";
@@ -818,10 +921,13 @@ Generate the COMPLETE, recruitment-ready CV. For any section with insufficient d
 
   function copyCV() {
     const t = getCVText();
-    if (!t) { showToast("Nothing to copy — generate first"); return; }
+    if (!t) {
+      showToast("Nothing to copy — generate first");
+      return;
+    }
     navigator.clipboard.writeText(t).then(
       () => showToast("✓ CV copied to clipboard", "success"),
-      () => showToast("Copy failed — try selecting text manually", "error")
+      () => showToast("Copy failed — try selecting text manually", "error"),
     );
   }
 
@@ -835,8 +941,8 @@ Generate the COMPLETE, recruitment-ready CV. For any section with insufficient d
 
   function exportHTML() {
     const cvText = getCVText();
-    const name   = g("fullName") || "Candidate";
-    const role   = g("targetRole") || "Professional";
+    const name = g("fullName") || "Candidate";
+    const role = g("targetRole") || "Professional";
     const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>${escapeHtml(name)} — ${escapeHtml(role)} CV</title><style>@page{margin:1.8cm 2cm}body{font-family:Arial,Helvetica,sans-serif;max-width:780px;margin:40px auto;padding:0 28px;color:#111;font-size:11pt;line-height:1.65}pre{white-space:pre-wrap;font-family:Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.7;margin:0}@media print{body{margin:0;padding:20px;max-width:none}}</style></head><body><pre>${escapeHtml(cvText)}</pre></body></html>`;
     const blob = new Blob([html], { type: "text/html" });
     triggerDownload(blob, `${slugify(name)}_${slugify(role)}_CV.html`);
@@ -845,11 +951,14 @@ Generate the COMPLETE, recruitment-ready CV. For any section with insufficient d
 
   function exportPDF() {
     const cvText = getCVText();
-    const name   = g("fullName") || "Candidate";
-    const role   = g("targetRole") || "Professional";
+    const name = g("fullName") || "Candidate";
+    const role = g("targetRole") || "Professional";
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtml(name)} — ${escapeHtml(role)} CV</title><style>@page{size:A4;margin:2cm}body{font-family:Arial,Helvetica,sans-serif;color:#111;font-size:10.5pt;line-height:1.7;margin:0;padding:0}pre{white-space:pre-wrap;font-family:Arial,Helvetica,sans-serif;font-size:10.5pt;line-height:1.7;margin:0;word-break:break-word}.hint{text-align:center;padding:16px;font-size:13px;color:#555;font-family:Arial;background:#f0f4ff;border-bottom:1px solid #cce;margin-bottom:20px}@media print{.hint{display:none}}</style></head><body><div class="hint"><strong>Ctrl+P</strong> (or Cmd+P on Mac) → Destination: <strong>"Save as PDF"</strong> → Margins: <strong>Default</strong> → Save</div><pre>${escapeHtml(cvText)}</pre></body></html>`;
     const w = window.open("", "_blank");
-    if (!w) { showToast("Allow popups to use PDF export", "error"); return; }
+    if (!w) {
+      showToast("Allow popups to use PDF export", "error");
+      return;
+    }
     w.document.write(html);
     w.document.close();
     setTimeout(() => w.print(), 500);
@@ -857,9 +966,9 @@ Generate the COMPLETE, recruitment-ready CV. For any section with insufficient d
 
   function exportRtf() {
     const cvText = getCVText();
-    const name   = g("fullName") || "Candidate";
-    const role   = g("targetRole") || "Professional";
-    const lines  = cvText.split("\n");
+    const name = g("fullName") || "Candidate";
+    const role = g("targetRole") || "Professional";
+    const lines = cvText.split("\n");
     let body = "";
     lines.forEach((line) => {
       const esc = line
@@ -886,7 +995,10 @@ Generate the COMPLETE, recruitment-ready CV. For any section with insufficient d
     const rtf = `{\\rtf1\\ansi\\ansicpg1252\\deff0\n{\\fonttbl{\\f0\\froman Times New Roman;}{\\f1\\fswiss\\fcharset0 Arial;}}\n{\\info{\\title ${escapeAttr(name)} — ${escapeAttr(role)} CV}}\n\\paperw11906\\paperh16838\\margl1800\\margr1800\\margt1440\\margb1440\n\\f1\\fs22\\sl276\\slmult1\n${body}\n}`;
     const blob = new Blob([rtf], { type: "application/rtf" });
     triggerDownload(blob, `${slugify(name)}_${slugify(role)}_ATS_CV.rtf`);
-    showToast("✓ Word-compatible RTF downloaded. Open in Microsoft Word or Google Docs.", "success");
+    showToast(
+      "✓ Word-compatible RTF downloaded. Open in Microsoft Word or Google Docs.",
+      "success",
+    );
   }
 
   function triggerDownload(blob, filename) {
@@ -900,31 +1012,43 @@ Generate the COMPLETE, recruitment-ready CV. For any section with insufficient d
   }
 
   function slugify(str) {
-    return String(str).replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "").slice(0, 40);
+    return String(str)
+      .replace(/\s+/g, "_")
+      .replace(/[^a-zA-Z0-9_]/g, "")
+      .slice(0, 40);
   }
 
   /* ══════════════════════════════════════
      ENTRY MODAL
   ══════════════════════════════════════ */
   function openModal(type, idx) {
-    modalType    = type;
-    modalEditIdx = (idx !== undefined && idx !== null) ? Number(idx) : -1;
-    const titles = { exp: "Work Experience", proj: "Project", edu: "Education", cert: "Certification" };
+    modalType = type;
+    modalEditIdx = idx !== undefined && idx !== null ? Number(idx) : -1;
+    const titles = {
+      exp: "Work Experience",
+      proj: "Project",
+      edu: "Education",
+      cert: "Certification",
+    };
     const titleEl = $("modalTitle");
-    if (titleEl) titleEl.textContent = (modalEditIdx >= 0 ? "Edit " : "Add ") + (titles[type] || "Entry");
+    if (titleEl)
+      titleEl.textContent =
+        (modalEditIdx >= 0 ? "Edit " : "Add ") + (titles[type] || "Entry");
     const bodyEl = $("modalBody");
     if (bodyEl) bodyEl.innerHTML = buildModalFields(type, modalEditIdx);
     const overlay = $("overlay");
     if (overlay) overlay.classList.add("open");
     setTimeout(() => {
-      const first = document.querySelector(".modal-body input, .modal-body textarea");
+      const first = document.querySelector(
+        ".modal-body input, .modal-body textarea",
+      );
       if (first) first.focus();
     }, 100);
   }
 
   function buildModalFields(type, idx) {
     if (type === "exp") {
-      const d = idx >= 0 ? (data.experiences[idx] || {}) : {};
+      const d = idx >= 0 ? data.experiences[idx] || {} : {};
       return `
 <div class="g2">
   <div class="field"><label>Job Title<span class="req">*</span></label><input id="mf_title" value="${escapeAttr(d.title)}"></div>
@@ -936,7 +1060,7 @@ Generate the COMPLETE, recruitment-ready CV. For any section with insufficient d
   <div class="field"><label>Type</label>
     <select id="mf_etype">
       <option value="">Select…</option>
-      ${["Full-time","Part-time","Contract","Freelance","Internship"].map((o) => `<option value="${o}"${d.etype === o ? " selected" : ""}>${o}</option>`).join("")}
+      ${["Full-time", "Part-time", "Contract", "Freelance", "Internship"].map((o) => `<option value="${o}"${d.etype === o ? " selected" : ""}>${o}</option>`).join("")}
     </select>
   </div>
 </div>
@@ -948,7 +1072,7 @@ Generate the COMPLETE, recruitment-ready CV. For any section with insufficient d
 <div class="tip-box" style="margin-top:.35rem"><span class="tip-icon">💡</span><span style="font-size:11px">Fill responsibilities &amp; achievements, then click AI Enhance to get ATS-optimized bullet points.</span></div>`;
     }
     if (type === "proj") {
-      const d = idx >= 0 ? (data.projects[idx] || {}) : {};
+      const d = idx >= 0 ? data.projects[idx] || {} : {};
       return `
 <div class="field"><label>Project Name<span class="req">*</span></label><input id="mf_pname" value="${escapeAttr(d.name)}"></div>
 <div class="field"><label>Technologies <span class="badge b-key" style="font-size:9px">ATS KEY</span></label><input id="mf_ptech" value="${escapeAttr(d.tech)}" placeholder="React.js, Node.js, MongoDB, AWS S3"></div>
@@ -960,7 +1084,7 @@ Generate the COMPLETE, recruitment-ready CV. For any section with insufficient d
 <div class="field"><label>Results / Impact</label><input id="mf_pimp" value="${escapeAttr(d.impact)}" placeholder="500+ users, 30% performance improvement"></div>`;
     }
     if (type === "edu") {
-      const d = idx >= 0 ? (data.education[idx] || {}) : {};
+      const d = idx >= 0 ? data.education[idx] || {} : {};
       return `
 <div class="field"><label>Degree / Qualification<span class="req">*</span></label><input id="mf_deg" value="${escapeAttr(d.degree)}" placeholder="B.Sc. Computer Science"></div>
 <div class="field"><label>Institution<span class="req">*</span></label><input id="mf_inst" value="${escapeAttr(d.institution)}"></div>
@@ -971,7 +1095,7 @@ Generate the COMPLETE, recruitment-ready CV. For any section with insufficient d
 </div>`;
     }
     if (type === "cert") {
-      const d = idx >= 0 ? (data.certifications[idx] || {}) : {};
+      const d = idx >= 0 ? data.certifications[idx] || {} : {};
       return `
 <div class="field"><label>Certification Name<span class="req">*</span></label><input id="mf_cname" value="${escapeAttr(d.name)}"></div>
 <div class="g2">
@@ -995,35 +1119,65 @@ Generate the COMPLETE, recruitment-ready CV. For any section with insufficient d
   function saveModal() {
     if (modalType === "exp") {
       const o = {
-        title:  mv("mf_title"),
+        title: mv("mf_title"),
         company: mv("mf_company"),
-        start:  mv("mf_start"),
-        end:    mv("mf_end"),
-        etype:  mv("mf_etype"),
-        loc:    mv("mf_loc"),
-        tech:   mv("mf_tech"),
-        resp:   mv("mf_resp"),
+        start: mv("mf_start"),
+        end: mv("mf_end"),
+        etype: mv("mf_etype"),
+        loc: mv("mf_loc"),
+        tech: mv("mf_tech"),
+        resp: mv("mf_resp"),
         achiev: mv("mf_achiev"),
       };
-      if (!o.title || !o.company) { showToast("Job title and company are required"); return; }
+      if (!o.title || !o.company) {
+        showToast("Job title and company are required");
+        return;
+      }
       if (modalEditIdx >= 0) data.experiences[modalEditIdx] = o;
       else data.experiences.push(o);
       renderList("exp");
     } else if (modalType === "proj") {
-      const o = { name: mv("mf_pname"), tech: mv("mf_ptech"), role: mv("mf_prole"), url: mv("mf_purl"), desc: mv("mf_pdesc"), impact: mv("mf_pimp") };
-      if (!o.name) { showToast("Project name is required"); return; }
+      const o = {
+        name: mv("mf_pname"),
+        tech: mv("mf_ptech"),
+        role: mv("mf_prole"),
+        url: mv("mf_purl"),
+        desc: mv("mf_pdesc"),
+        impact: mv("mf_pimp"),
+      };
+      if (!o.name) {
+        showToast("Project name is required");
+        return;
+      }
       if (modalEditIdx >= 0) data.projects[modalEditIdx] = o;
       else data.projects.push(o);
       renderList("proj");
     } else if (modalType === "edu") {
-      const o = { degree: mv("mf_deg"), institution: mv("mf_inst"), year: mv("mf_year"), cgpa: mv("mf_cgpa"), coursework: mv("mf_course") };
-      if (!o.degree || !o.institution) { showToast("Degree and institution are required"); return; }
+      const o = {
+        degree: mv("mf_deg"),
+        institution: mv("mf_inst"),
+        year: mv("mf_year"),
+        cgpa: mv("mf_cgpa"),
+        coursework: mv("mf_course"),
+      };
+      if (!o.degree || !o.institution) {
+        showToast("Degree and institution are required");
+        return;
+      }
       if (modalEditIdx >= 0) data.education[modalEditIdx] = o;
       else data.education.push(o);
       renderList("edu");
     } else if (modalType === "cert") {
-      const o = { name: mv("mf_cname"), org: mv("mf_corg"), date: mv("mf_cdate"), url: mv("mf_curl") };
-      if (!o.name) { showToast("Certification name is required"); return; }
+      const o = {
+        name: mv("mf_cname"),
+        org: mv("mf_corg"),
+        date: mv("mf_cdate"),
+        url: mv("mf_curl"),
+      };
+      if (!o.name) {
+        showToast("Certification name is required");
+        return;
+      }
       if (modalEditIdx >= 0) data.certifications[modalEditIdx] = o;
       else data.certifications.push(o);
       renderList("cert");
@@ -1037,43 +1191,65 @@ Generate the COMPLETE, recruitment-ready CV. For any section with insufficient d
   function renderList(type) {
     const maps = {
       exp: {
-        id:  "expList",
+        id: "expList",
         arr: "experiences",
-        fn:  (e) => `<div class="ecard-title">${escapeHtml(e.title)} — ${escapeHtml(e.company)}</div>
+        fn: (
+          e,
+        ) => `<div class="ecard-title">${escapeHtml(e.title)} — ${escapeHtml(e.company)}</div>
 <div class="ecard-sub">${escapeHtml(e.start || "")}${e.end ? " – " + escapeHtml(e.end) : ""} · ${escapeHtml(e.etype || "")} ${e.loc ? "· " + escapeHtml(e.loc) : ""}</div>
-${e.tech ? `<div class="etags">${e.tech.split(",").slice(0, 5).map((t) => `<span class="etag">${escapeHtml(t.trim())}</span>`).join("")}</div>` : ""}`,
+${
+  e.tech
+    ? `<div class="etags">${e.tech
+        .split(",")
+        .slice(0, 5)
+        .map((t) => `<span class="etag">${escapeHtml(t.trim())}</span>`)
+        .join("")}</div>`
+    : ""
+}`,
       },
       proj: {
-        id:  "projList",
+        id: "projList",
         arr: "projects",
-        fn:  (p) => `<div class="ecard-title">${escapeHtml(p.name)}</div>
+        fn: (p) => `<div class="ecard-title">${escapeHtml(p.name)}</div>
 <div class="ecard-sub">${escapeHtml(p.role || "")}${p.impact ? " · " + escapeHtml(p.impact) : ""}</div>
-${p.tech ? `<div class="etags">${p.tech.split(",").slice(0, 4).map((t) => `<span class="etag">${escapeHtml(t.trim())}</span>`).join("")}</div>` : ""}`,
+${
+  p.tech
+    ? `<div class="etags">${p.tech
+        .split(",")
+        .slice(0, 4)
+        .map((t) => `<span class="etag">${escapeHtml(t.trim())}</span>`)
+        .join("")}</div>`
+    : ""
+}`,
       },
       edu: {
-        id:  "eduList",
+        id: "eduList",
         arr: "education",
-        fn:  (e) => `<div class="ecard-title">${escapeHtml(e.degree)}</div>
+        fn: (e) => `<div class="ecard-title">${escapeHtml(e.degree)}</div>
 <div class="ecard-sub">${escapeHtml(e.institution)}${e.year ? " · " + escapeHtml(e.year) : ""}${e.cgpa ? " · " + escapeHtml(e.cgpa) : ""}</div>`,
       },
       cert: {
-        id:  "certList",
+        id: "certList",
         arr: "certifications",
-        fn:  (c) => `<div class="ecard-title">${escapeHtml(c.name)}</div>
+        fn: (c) => `<div class="ecard-title">${escapeHtml(c.name)}</div>
 <div class="ecard-sub">${escapeHtml(c.org || "")} · ${escapeHtml(c.date || "")}</div>`,
       },
     };
-    const m   = maps[type];
-    const el  = $(m.id);
+    const m = maps[type];
+    const el = $(m.id);
     if (!el) return;
-    el.innerHTML = data[m.arr].map((item, i) => `
+    el.innerHTML = data[m.arr]
+      .map(
+        (item, i) => `
 <div class="ecard">
   <div class="ecard-body">${m.fn(item)}</div>
   <div class="ecard-actions">
     <button class="btn btn-ghost btn-icon btn-sm" data-edit-type="${type}" data-edit-idx="${i}" title="Edit" aria-label="Edit entry">✎</button>
     <button class="btn btn-danger btn-icon btn-sm" data-del-arr="${m.arr}" data-del-idx="${i}" data-del-type="${type}" title="Delete" aria-label="Delete entry">✕</button>
   </div>
-</div>`).join("");
+</div>`,
+      )
+      .join("");
   }
 
   function removeItem(arr, i, type) {
@@ -1091,9 +1267,13 @@ ${p.tech ? `<div class="etags">${p.tech.split(",").slice(0, 4).map((t) => `<span
     if (!inp) return;
     const val = inp.value.trim();
     if (!val) return;
-    val.split(",").map((s) => s.trim()).filter(Boolean).forEach((s) => {
-      if (!data.skills[type].includes(s)) data.skills[type].push(s);
-    });
+    val
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .forEach((s) => {
+        if (!data.skills[type].includes(s)) data.skills[type].push(s);
+      });
     inp.value = "";
     renderTags(type);
     updateProgress();
@@ -1105,9 +1285,12 @@ ${p.tech ? `<div class="etags">${p.tech.split(",").slice(0, 4).map((t) => `<span
     if (!map) return;
     const el = $(map.tags);
     if (!el) return;
-    el.innerHTML = data.skills[type].map((s, i) =>
-      `<span class="chip">${escapeHtml(s)}<button class="chip-x" data-remove-skill="${type}" data-remove-idx="${i}" aria-label="Remove ${escapeAttr(s)}">×</button></span>`
-    ).join("");
+    el.innerHTML = data.skills[type]
+      .map(
+        (s, i) =>
+          `<span class="chip">${escapeHtml(s)}<button class="chip-x" data-remove-skill="${type}" data-remove-idx="${i}" aria-label="Remove ${escapeAttr(s)}">×</button></span>`,
+      )
+      .join("");
   }
 
   function removeSkill(type, i) {
@@ -1130,11 +1313,12 @@ ${p.tech ? `<div class="etags">${p.tech.split(",").slice(0, 4).map((t) => `<span
      EVENT LISTENERS
   ══════════════════════════════════════ */
   function setupEventListeners() {
-
     /* Sidebar navigation */
     document.querySelectorAll(".sitem").forEach((el, i) => {
       el.addEventListener("click", () => goTo(i));
-      el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") goTo(i); });
+      el.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") goTo(i);
+      });
     });
 
     /* Mobile nav */
@@ -1149,8 +1333,10 @@ ${p.tech ? `<div class="etags">${p.tech.split(",").slice(0, 4).map((t) => `<span
 
     /* data-modal triggers (add-entry divs) */
     document.querySelectorAll("[data-modal]").forEach((el) => {
-      el.addEventListener("click",   () => openModal(el.dataset.modal));
-      el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") openModal(el.dataset.modal); });
+      el.addEventListener("click", () => openModal(el.dataset.modal));
+      el.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") openModal(el.dataset.modal);
+      });
     });
 
     /* data-skill buttons */
@@ -1161,7 +1347,13 @@ ${p.tech ? `<div class="etags">${p.tech.split(",").slice(0, 4).map((t) => `<span
     /* Skill input Enter */
     Object.keys(SKILL_MAP).forEach((type) => {
       const inp = $(SKILL_MAP[type].input);
-      if (inp) inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(type); } });
+      if (inp)
+        inp.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            addSkill(type);
+          }
+        });
     });
 
     /* Edit/Delete delegation on mainArea */
@@ -1169,16 +1361,29 @@ ${p.tech ? `<div class="etags">${p.tech.split(",").slice(0, 4).map((t) => `<span
     if (main) {
       main.addEventListener("click", (e) => {
         const editBtn = e.target.closest("[data-edit-type]");
-        if (editBtn) openModal(editBtn.dataset.editType, parseInt(editBtn.dataset.editIdx, 10));
+        if (editBtn)
+          openModal(
+            editBtn.dataset.editType,
+            parseInt(editBtn.dataset.editIdx, 10),
+          );
         const delBtn = e.target.closest("[data-del-arr]");
-        if (delBtn) removeItem(delBtn.dataset.delArr, parseInt(delBtn.dataset.delIdx, 10), delBtn.dataset.delType);
+        if (delBtn)
+          removeItem(
+            delBtn.dataset.delArr,
+            parseInt(delBtn.dataset.delIdx, 10),
+            delBtn.dataset.delType,
+          );
       });
     }
 
     /* Remove skill delegation (chips rendered in skill tags) */
     document.addEventListener("click", (e) => {
       const chipBtn = e.target.closest("[data-remove-skill]");
-      if (chipBtn) removeSkill(chipBtn.dataset.removeSkill, parseInt(chipBtn.dataset.removeIdx, 10));
+      if (chipBtn)
+        removeSkill(
+          chipBtn.dataset.removeSkill,
+          parseInt(chipBtn.dataset.removeIdx, 10),
+        );
       /* Enhance bullets button inside modal */
       const enhBtn = e.target.closest("#enhanceBtn");
       if (enhBtn) aiEnhanceBullets("mf_resp", "mf_achiev", enhBtn);
@@ -1188,7 +1393,9 @@ ${p.tech ? `<div class="etags">${p.tech.split(",").slice(0, 4).map((t) => `<span
     const apiKeyBtn = $("apiKeyBtn");
     if (apiKeyBtn) {
       apiKeyBtn.addEventListener("click", openApiKeyModal);
-      apiKeyBtn.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") openApiKeyModal(); });
+      apiKeyBtn.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") openApiKeyModal();
+      });
     }
 
     /* Score pill */
@@ -1196,54 +1403,62 @@ ${p.tech ? `<div class="etags">${p.tech.split(",").slice(0, 4).map((t) => `<span
     if (scorePill) scorePill.addEventListener("click", () => goTo(8));
 
     /* API key modal buttons */
-    $("apiKeyCloseBtn")?.addEventListener("click",  closeApiKeyModal);
+    $("apiKeyCloseBtn")?.addEventListener("click", closeApiKeyModal);
     $("apiKeyCancelBtn")?.addEventListener("click", closeApiKeyModal);
-    $("apiKeySaveBtn")?.addEventListener("click",   saveApiKey);
+    $("apiKeySaveBtn")?.addEventListener("click", saveApiKey);
     /* Enter key in API key input */
-    $("groqKeyInput")?.addEventListener("keydown", (e) => { if (e.key === "Enter") saveApiKey(); });
+    $("groqKeyInput")?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") saveApiKey();
+    });
     /* Overlay click to close */
-    $("apiKeyOverlay")?.addEventListener("click", (e) => { if (e.target === e.currentTarget) closeApiKeyModal(); });
+    $("apiKeyOverlay")?.addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) closeApiKeyModal();
+    });
 
     /* Entry modal buttons */
-    $("modalCloseBtn")?.addEventListener("click",  closeModal);
+    $("modalCloseBtn")?.addEventListener("click", closeModal);
     $("modalCancelBtn")?.addEventListener("click", closeModal);
-    $("modalSaveBtn")?.addEventListener("click",   saveModal);
-    $("overlay")?.addEventListener("click", (e) => { if (e.target === e.currentTarget) closeModal(); });
+    $("modalSaveBtn")?.addEventListener("click", saveModal);
+    $("overlay")?.addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    });
 
     /* Tutorial */
-    $("tutorialBtn")?.addEventListener("click",       openTutorial);
-    $("tutorialCloseBtn")?.addEventListener("click",  closeTutorial);
-    $("tutorialOverlay")?.addEventListener("click", (e) => { if (e.target === e.currentTarget) closeTutorial(); });
+    $("tutorialBtn")?.addEventListener("click", openTutorial);
+    $("tutorialCloseBtn")?.addEventListener("click", closeTutorial);
+    $("tutorialOverlay")?.addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) closeTutorial();
+    });
 
     /* Clear data */
     $("clearDataBtn")?.addEventListener("click", clearAllData);
 
     /* AI buttons */
-    $("kwBtn")?.addEventListener("click",      aiExtractKeywords);
-    $("aiSumBtn")?.addEventListener("click",   aiSummary);
+    $("kwBtn")?.addEventListener("click", aiExtractKeywords);
+    $("aiSumBtn")?.addEventListener("click", aiSummary);
     $("aiSkillBtn")?.addEventListener("click", aiExtractSkills);
-    $("genBtn")?.addEventListener("click",     generateCV);
-    $("genBtn2")?.addEventListener("click",    generateCV);
+    $("genBtn")?.addEventListener("click", generateCV);
+    $("genBtn2")?.addEventListener("click", generateCV);
 
     /* CV Edit */
-    $("editBtn")?.addEventListener("click",       toggleEdit);
-    $("saveEditBtn")?.addEventListener("click",   saveEdit);
+    $("editBtn")?.addEventListener("click", toggleEdit);
+    $("saveEditBtn")?.addEventListener("click", saveEdit);
     $("cancelEditBtn")?.addEventListener("click", cancelEdit);
 
     /* AI Polish */
     $("polishBtn")?.addEventListener("click", aiPolishCV);
 
     /* Export toolbar */
-    $("exportPdfBtn")?.addEventListener("click",  exportPDF);
-    $("exportRtfBtn")?.addEventListener("click",  exportRtf);
+    $("exportPdfBtn")?.addEventListener("click", exportPDF);
+    $("exportRtfBtn")?.addEventListener("click", exportRtf);
     $("downloadTxtBtn")?.addEventListener("click", downloadTxt);
-    $("exportHtmlBtn")?.addEventListener("click",  exportHTML);
-    $("copyCvBtn")?.addEventListener("click",      copyCV);
+    $("exportHtmlBtn")?.addEventListener("click", exportHTML);
+    $("copyCvBtn")?.addEventListener("click", copyCV);
 
     /* Export cards */
-    $("expPdfCard")?.addEventListener("click",  exportPDF);
-    $("expRtfCard")?.addEventListener("click",  exportRtf);
-    $("expTxtCard")?.addEventListener("click",  downloadTxt);
+    $("expPdfCard")?.addEventListener("click", exportPDF);
+    $("expRtfCard")?.addEventListener("click", exportRtf);
+    $("expTxtCard")?.addEventListener("click", downloadTxt);
     $("expHtmlCard")?.addEventListener("click", exportHTML);
 
     /* Empty state "Set API key" button */
@@ -1252,9 +1467,18 @@ ${p.tech ? `<div class="etags">${p.tech.split(",").slice(0, 4).map((t) => `<span
     /* Escape key: close modals */
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
-        if ($("tutorialOverlay")?.classList.contains("open")) { closeTutorial(); return; }
-        if ($("apiKeyOverlay")?.classList.contains("open"))   { closeApiKeyModal(); return; }
-        if ($("overlay")?.classList.contains("open"))          { closeModal(); return; }
+        if ($("tutorialOverlay")?.classList.contains("open")) {
+          closeTutorial();
+          return;
+        }
+        if ($("apiKeyOverlay")?.classList.contains("open")) {
+          closeApiKeyModal();
+          return;
+        }
+        if ($("overlay")?.classList.contains("open")) {
+          closeModal();
+          return;
+        }
       }
     });
 
@@ -1262,20 +1486,26 @@ ${p.tech ? `<div class="etags">${p.tech.split(",").slice(0, 4).map((t) => `<span
     FIELD_IDS.forEach((id) => {
       const el = $(id);
       if (el) {
-        el.addEventListener("input",  debouncedSave);
+        el.addEventListener("input", debouncedSave);
         el.addEventListener("change", debouncedSave);
       }
     });
 
     /* Progress update on key fields */
-    ["targetRole","industry","fullName","email","summary"].forEach((id) => {
+    ["targetRole", "industry", "fullName", "email", "summary"].forEach((id) => {
       const el = $(id);
       if (el) el.addEventListener("input", updateProgress);
     });
 
     /* Before unload warning */
     window.addEventListener("beforeunload", (e) => {
-      if (g("targetRole") || g("fullName") || g("summary") || data.experiences.length || data.education.length) {
+      if (
+        g("targetRole") ||
+        g("fullName") ||
+        g("summary") ||
+        data.experiences.length ||
+        data.education.length
+      ) {
         e.preventDefault();
         e.returnValue = "";
       }

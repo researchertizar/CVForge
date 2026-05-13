@@ -24,7 +24,10 @@
     var saved = localStorage.getItem(STORAGE_KEY);
     if (saved === "light" || saved === "dark") return saved;
     /* Fall back to OS preference */
-    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+    if (
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: light)").matches
+    ) {
       return "light";
     }
     return "light"; /* Default to light if no preference */
@@ -38,26 +41,44 @@
     var btn = document.getElementById("themeToggle");
     if (!btn) return;
 
-    btn.setAttribute("aria-label", currentTheme === "light" ? "Switch to dark mode" : "Switch to light mode");
-    btn.setAttribute("title",      currentTheme === "light" ? "Switch to dark mode" : "Switch to light mode");
+    btn.setAttribute(
+      "aria-label",
+      currentTheme === "light" ? "Switch to dark mode" : "Switch to light mode",
+    );
+    btn.setAttribute(
+      "title",
+      currentTheme === "light" ? "Switch to dark mode" : "Switch to light mode",
+    );
 
     btn.addEventListener("click", function () {
       currentTheme = currentTheme === "dark" ? "light" : "dark";
       applyTheme(currentTheme);
       localStorage.setItem(STORAGE_KEY, currentTheme);
-      btn.setAttribute("aria-label", currentTheme === "light" ? "Switch to dark mode" : "Switch to light mode");
-      btn.setAttribute("title",      currentTheme === "light" ? "Switch to dark mode" : "Switch to light mode");
+      btn.setAttribute(
+        "aria-label",
+        currentTheme === "light"
+          ? "Switch to dark mode"
+          : "Switch to light mode",
+      );
+      btn.setAttribute(
+        "title",
+        currentTheme === "light"
+          ? "Switch to dark mode"
+          : "Switch to light mode",
+      );
     });
 
     /* Also listen to OS changes mid-session */
     if (window.matchMedia) {
-      window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", function (e) {
-        /* Only auto-change if user hasn't manually picked */
-        if (!localStorage.getItem(STORAGE_KEY)) {
-          currentTheme = e.matches ? "light" : "dark";
-          applyTheme(currentTheme);
-        }
-      });
+      window
+        .matchMedia("(prefers-color-scheme: light)")
+        .addEventListener("change", function (e) {
+          /* Only auto-change if user hasn't manually picked */
+          if (!localStorage.getItem(STORAGE_KEY)) {
+            currentTheme = e.matches ? "light" : "dark";
+            applyTheme(currentTheme);
+          }
+        });
     }
   }
 
@@ -135,17 +156,33 @@
       if (!manifestLink) return;
 
       fetch(manifestLink.href)
-        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          return r.json();
+        })
         .then(function (manifest) {
           manifest.icons = [
-            { src: icon192, sizes: "192x192", type: "image/png", purpose: "any maskable" },
-            { src: icon512, sizes: "512x512", type: "image/png", purpose: "any" },
+            {
+              src: icon192,
+              sizes: "192x192",
+              type: "image/png",
+              purpose: "any maskable",
+            },
+            {
+              src: icon512,
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "any",
+            },
           ];
-          var blob = new Blob([JSON.stringify(manifest)], { type: "application/json" });
+          var blob = new Blob([JSON.stringify(manifest)], {
+            type: "application/json",
+          });
           var url = URL.createObjectURL(blob);
           manifestLink.href = url;
         })
-        .catch(function () { /* manifest fetch failed, skip */ });
+        .catch(function () {
+          /* manifest fetch failed, skip */
+        });
     }
 
     if (document.readyState === "loading") {
