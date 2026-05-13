@@ -580,7 +580,6 @@ body::before {
 .panel-head h1 {
   font-family: var(--fh);
   font-size: 1.8rem;
-  font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 1.15;
   color: var(--text);
@@ -1568,7 +1567,6 @@ body::before {
 .tut-header h2 {
   font-family: var(--fh);
   font-size: 1.45rem;
-  font-weight: 800;
   margin-bottom: 0.3rem;
 }
 .tut-header p {
