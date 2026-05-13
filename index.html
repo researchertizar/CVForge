@@ -3,17 +3,23 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
   <meta name="description"
     content="CVForge Pro — Build ATS-optimized, recruiter-ready CVs in minutes using Groq AI. Free keyword extraction, AI-powered summaries, and multi-format export.">
   <meta name="theme-color" content="#07080f">
   <meta name="robots" content="index, follow">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CVForge Pro">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta property="og:title" content="CVForge Pro — AI-Powered ATS CV Builder">
   <meta property="og:description"
     content="Build ATS-optimized CVs with Groq AI. Extract keywords, generate summaries, and export as PDF, RTF, or TXT.">
   <meta property="og:type" content="website">
+  <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml"
     href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%234f8ef7'/%3E%3Ctext x='50' y='65' font-family='Arial' font-weight='800' font-size='42' fill='white' text-anchor='middle'%3ECV%3C/text%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <title>CVForge Pro — AI-Powered ATS CV Builder</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,19 +27,21 @@
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <!-- In <head> – manifest only added on http/https -->
+  <script>
+    if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+      const linkManifest = document.createElement('link');
+      linkManifest.rel = 'manifest';
+      linkManifest.href = 'manifest.json';
+      document.head.appendChild(linkManifest);
+    }
+  </script>
 </head>
 
 <body>
 
   <!-- TOP NAV -->
   <nav class="topnav" role="navigation" aria-label="Main navigation">
-    <!-- <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle navigation menu" aria-expanded="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="3" y1="6" x2="21" y2="6" />
-        <line x1="3" y1="12" x2="21" y2="12" />
-        <line x1="3" y1="18" x2="21" y2="18" />
-      </svg>
-    </button> -->
     <div class="logo">
       <div class="logo-mark">CV</div>CV<em>Forge</em> Pro
     </div>
@@ -47,14 +55,15 @@
       <div class="api-key-btn" id="apiKeyBtn" role="button" tabindex="0" aria-label="Set Groq API key">
         🔑 <span id="apiKeyStatus">Set Groq Key</span>
       </div>
+      <button class="theme-toggle" id="themeToggle" aria-label="Switch theme" title="Switch theme">
+        <span class="icon-moon">🌙</span>
+        <span class="icon-sun">☀️</span>
+      </button>
     </div>
   </nav>
 
   <div class="shell">
-    <!-- Mobile sidebar overlay -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-    <!-- SIDEBAR -->
+    <!-- SIDEBAR (desktop only) -->
     <aside class="sidebar" id="sidebar" role="navigation" aria-label="CV sections">
       <div class="sidebar-label">Setup</div>
       <div class="sitem active" id="sitem0" role="button" tabindex="0">
@@ -504,7 +513,7 @@
     </main>
   </div>
 
-  <!-- MOBILE NAV -->
+  <!-- MOBILE NAV (visible only on mobile) -->
   <nav class="mobile-nav" id="mobileNav" role="navigation" aria-label="Mobile section navigation">
     <div class="mnav-item active" id="mn0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10" />
@@ -543,7 +552,7 @@
       </svg>Gen</div>
   </nav>
 
-  <!-- ENTRY MODAL -->
+  <!-- MODALS -->
   <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal">
       <div class="modal-h">
@@ -556,7 +565,6 @@
     </div>
   </div>
 
-  <!-- API KEY MODAL -->
   <div class="overlay" id="apiKeyOverlay" role="dialog" aria-modal="true" aria-labelledby="apiKeyModalTitle">
     <div class="apikey-modal">
       <div class="modal-h">
@@ -595,7 +603,6 @@
     </div>
   </div>
 
-  <!-- TUTORIAL MODAL -->
   <div class="tutorial-overlay" id="tutorialOverlay" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
     <div class="tutorial-modal">
       <div class="tut-header">
@@ -676,10 +683,25 @@
     </div>
   </div>
 
-  <!-- TOAST -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="theme.js"></script>
   <script src="app.js"></script>
+  <!-- SW registration handled below -->
+  <script>
+    // Register Service Worker only in secure context
+    if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then(reg => {
+          console.log('✅ Service Worker registered:', reg);
+        }).catch(err => {
+          console.warn('⚠️ SW registration failed:', err);
+        });
+      });
+    } else {
+      console.log('ℹ️ PWA features (Service Worker) disabled – run on localhost or HTTPS to enable offline & install.');
+    }
+  </script>
 </body>
 
 </html>
