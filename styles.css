@@ -1796,3 +1796,80 @@ body::before {
     display: none !important;
   }
 }
+
+/* ══════════ MOBILE SECTION ACTIONS BAR ══════════
+   Per-page Clear + quick action row on mobile.
+   Hidden on desktop (sidebar handles it).          */
+.mobile-section-actions {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+@media (max-width: 900px) {
+  .mobile-section-actions {
+    display: flex;
+  }
+}
+
+/* ══════════ DATE INPUT WRAP ══════════
+   Stacks a month picker + text input.
+   Month input shows on Chrome/Edge;
+   text input is always editable.        */
+.date-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.date-picker-input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 0.42rem 0.7rem;
+  font-size: 12.5px;
+  color: var(--text2);
+  font-family: var(--fb);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+}
+.date-picker-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--glow);
+}
+/* Chrome shows the calendar icon — keep it styled */
+.date-picker-input::-webkit-calendar-picker-indicator {
+  opacity: 0.5;
+  cursor: pointer;
+  filter: var(--calendar-icon-filter, none);
+}
+[data-theme="light"] .date-picker-input::-webkit-calendar-picker-indicator {
+  filter: none;
+}
+.date-text-input {
+  /* inherits .field input styles */
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 0.55rem 0.85rem;
+  font-size: 13px;
+  color: var(--text);
+  font-family: var(--fb);
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+  width: 100%;
+}
+.date-text-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--glow);
+}
+[data-theme="light"] .date-picker-input,
+[data-theme="light"] .date-text-input {
+  background: var(--surface);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
