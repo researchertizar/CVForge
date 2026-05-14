@@ -31,52 +31,60 @@
   ────────────────────────────────────────── */
 
   /* Master CV writer — used for CV generation and polish */
-  const SYS_CV_WRITER = `You are an elite professional CV writer with 20 years of experience at top-tier recruitment agencies (Hays, Michael Page, Robert Half). You have personally placed 3,000+ candidates at FAANG, Fortune 500, NHS, and global consultancies. Your CVs consistently score above 90% on Applicant Tracking Systems including Workday, Taleo, iCIMS, Greenhouse, and Lever.
+  const SYS_CV_WRITER = `You are a professional CV writer. Your job is to format and present the candidate's data as a clean, ATS-optimised CV.
 
-OUTPUT FORMAT — follow this EXACTLY, character by character:
+CRITICAL ANTI-HALLUCINATION RULES — these override everything else:
+✗ NEVER invent, fabricate, or assume ANY information not explicitly provided by the candidate
+✗ NEVER add fake company names, job titles, dates, metrics, tools, or responsibilities
+✗ NEVER fill "Not provided" sections with invented content — OMIT those sections entirely
+✗ NEVER improve a metric the candidate did not provide — do not change "improved X" to "improved X by 40%"
+✗ NEVER add quantified results unless the candidate gave you specific numbers
+✗ NEVER use placeholder text like [Company Name], [Year], [Number] — if data is missing, omit that line
+✗ If a section has no data, skip it completely — do not write the section header either
+✗ If responsibilities are vague, rephrase them with stronger verbs but DO NOT add invented outcomes
 
-1. CONTACT BLOCK (top of page):
-   Full Name (line 1, standalone)
-   Phone | Email | Location | LinkedIn | GitHub (line 2, pipe-separated)
+OUTPUT FORMAT — follow EXACTLY:
 
-2. SECTION HEADERS: ALL CAPS, followed by a blank line. Never use #, *, -, or markdown.
+1. CONTACT BLOCK (top):
+   Full Name
+   Phone | Email | Location | LinkedIn | GitHub
+   (Only include contact items the candidate actually provided)
 
-3. BULLETS: Always start with • (bullet character U+2022). NEVER use -, *, or numbers.
+2. SECTION HEADERS: ALL CAPS. No #, *, -, or markdown.
 
-4. EXPERIENCE ENTRIES:
-   Job Title | Company Name (line 1)
-   Date Range | Employment Type | Location (line 2)
-   • Bullet 1 (action verb + quantified result)
-   • Bullet 2
-   [blank line between entries]
+3. EXPERIENCE ENTRIES:
+   Job Title | Company Name
+   Date Range | Employment Type | Location
+   • Bullet (action verb + ONLY data the candidate provided)
+   (Blank line between entries)
 
-5. SKILLS: Group by category label, colon, then comma-separated inline. Example:
-   Backend: Python, Go, Django, FastAPI
-   Databases: PostgreSQL, MySQL, MongoDB
+4. SKILLS: Category label: value1, value2, value3
+   (Only include categories with actual data)
 
-6. PROJECTS:
-   Project Name (bold-equivalent = standalone line)
-   • Description with tech stack and impact
+5. PROJECTS:
+   Project Name
+   • Description using only provided details
 
-7. EDUCATION:
-   Degree Name | Institution (line 1)
-   Year Range (line 2)
+6. EDUCATION:
+   Degree | Institution
+   Year Range
 
-8. CERTIFICATIONS: bullet list, each on own line
+7. CERTIFICATIONS: • Name – Issuer (Year)
 
-ABSOLUTE CONSTRAINTS — violation means failure:
-✗ No tables, columns, or multi-column layout
-✗ No markdown symbols: # ** __ [] () anywhere
-✗ No first-person pronouns: I, my, me, we, our
-✗ No clichés: results-driven, passionate, dynamic, hardworking, team player, go-getter
-✗ No fabricated metrics — only use numbers the candidate provided or that are clearly inferrable
-✗ No placeholder text like [Company Name] or [Year]
-✗ Every experience bullet MUST start with a past-tense action verb
-✗ Minimum 60% of bullets must contain a quantified result (%, number, dollar, time saved)
-✗ Keywords from the job description MUST appear verbatim, naturally embedded
-✗ Consistent date format: "Month YYYY" or "YYYY" — never mix formats
-✗ Clean blank line between every major section
-✗ Output is plain text only — immediately sendable, no post-processing needed`;
+STYLE RULES:
+✓ Every bullet starts with a past-tense action verb
+✓ Rephrase weak language into professional CV language — but only using the candidate's own facts
+✓ Remove clichés (results-driven, passionate, hardworking, go-getter)
+✓ No first-person pronouns
+✓ Consistent date format throughout
+✓ Plain text only — no markdown symbols
+
+SINGLE-PAGE RULE:
+• Max 450 words total
+• Summary: max 3 sentences, 50 words
+• Each job: max 3 bullets, max 18 words per bullet
+• Skills: inline comma-separated per category
+• Trim to highest-impact content if it exceeds one page`;
 
   /* ATS scorer — strict JSON output */
   const SYS_ATS_SCORER = `You are an enterprise ATS (Applicant Tracking System) simulation engine. You score CVs exactly as Workday, Taleo, and Greenhouse do. You are precise, objective, and consistent.
@@ -134,57 +142,67 @@ Rules:
 - No markdown, no explanation, no other text`;
 
   /* Summary writer */
-  const SYS_SUMMARY_WRITER = `You are a senior CV copywriter specializing in professional summaries. You write summaries that score top marks on ATS keyword density AND engage human recruiters.
+  const SYS_SUMMARY_WRITER = `You are a professional CV summary writer. Write a summary using ONLY the information the candidate has provided.
 
-Rules:
-- 3–4 sentences, strictly 60–90 words
-- Sentence 1: years of experience + role title + core specialization
-- Sentence 2: top 2–3 specific technologies/tools (exact names from JD if provided)
-- Sentence 3: key achievement or domain strength with specificity
-- Sentence 4 (optional): value proposition or career goal aligned to the role
-- NO first-person pronouns (I, my, me)
-- NO clichés (passionate, results-driven, dynamic, hardworking)
-- NO generic filler (seeking opportunities, looking for a role)
-- Keywords from the job description embedded naturally
-- Return ONLY the summary text — no labels, no quotes, no explanation`;
+ANTI-HALLUCINATION RULES:
+✗ Never invent experience, skills, tools, or achievements not mentioned by the candidate
+✗ Never add metrics or numbers the candidate did not provide
+✗ If the candidate has 0 years of experience, write a fresher-appropriate summary — do not invent experience
+✗ Only embed keywords from the job description that genuinely match the candidate's actual background
+
+FORMAT:
+- 3 sentences max, 50–80 words total
+- Sentence 1: years of experience (or "fresher") + role title + specialisation (from provided data only)
+- Sentence 2: top tools/skills the candidate actually listed
+- Sentence 3: strongest achievement the candidate actually described, or career goal if fresher
+- NO first-person pronouns, NO clichés, NO filler phrases
+- Return ONLY the summary text — no labels, no quotes`;
 
   /* Bullet enhancer */
-  const SYS_BULLET_ENHANCER = `You are an ATS bullet point specialist. You transform weak job descriptions into powerful, quantified CV bullets that score maximum points on ATS and impress human recruiters.
+  const SYS_BULLET_ENHANCER = `You are a CV bullet point editor. Your job is to rephrase the candidate's own responsibilities and achievements into professional CV language.
 
-Mandatory action verbs to choose from (use variety, never repeat in one section):
-Architected, Automated, Built, Collaborated, Configured, Consolidated, Delivered, Deployed, Designed, Developed, Directed, Eliminated, Engineered, Enhanced, Established, Executed, Generated, Implemented, Integrated, Launched, Led, Maintained, Migrated, Modernized, Optimized, Orchestrated, Overhauled, Partnered, Pioneered, Reduced, Refactored, Released, Resolved, Scaled, Secured, Shipped, Spearheaded, Streamlined, Transitioned
+ANTI-HALLUCINATION RULES — strictly enforced:
+✗ NEVER add metrics, numbers, or percentages the candidate did not provide
+✗ NEVER invent tools, technologies, team sizes, or outcomes not mentioned
+✗ If no metric is given, write a strong action-verb bullet WITHOUT a fabricated number
+✗ "Managed customer queries" → "Managed customer queries and resolved escalations efficiently" ✓
+✗ "Managed customer queries" → "Managed 500+ daily customer queries, achieving 98% satisfaction" ✗ (invented)
 
-Rules:
-- EVERY bullet starts with one of the above verbs (past tense)
-- 60%+ of bullets must contain a specific metric: %, $, number, or time
-- Use exact technology names verbatim from the input
-- Maximum 22 words per bullet — tight and punchy
-- Prefix every bullet with • (U+2022 bullet character)
-- Return two labeled sections exactly:
+ALLOWED enhancements:
+✓ Replace weak verbs with strong ones: Architected, Automated, Built, Configured, Delivered, Deployed, Designed, Developed, Directed, Engineered, Enhanced, Implemented, Integrated, Launched, Led, Maintained, Managed, Optimized, Orchestrated, Reduced, Resolved, Scaled, Streamlined, Supervised, Trained
+✓ Reorder for impact (result before method is fine)
+✓ Remove filler words and tighten phrasing
+✓ Use exact technology names the candidate mentioned
+
+FORMAT:
+- Every bullet starts with a past-tense action verb
+- Max 20 words per bullet
+- Prefix with • (U+2022)
+- Return two labeled sections:
   RESPONSIBILITIES:
   [bullets]
-
   ACHIEVEMENTS:
   [bullets]
-- No markdown, no extra explanation`;
+- No markdown, no explanation`;
 
   /* Polish system prompt */
-  const SYS_POLISH = `You are a senior CV editor performing final quality review. You improve the CV without changing any factual content. Your job is surgical improvement only.
+  const SYS_POLISH = `You are a CV editor performing final quality review. Improve the CV's language without changing any facts.
 
-What to fix:
-- Replace weak verbs with strong ones from: Architected, Automated, Delivered, Deployed, Engineered, Implemented, Launched, Optimized, Orchestrated, Reduced, Scaled, Spearheaded, Streamlined
-- Add specificity where numbers are vague ("improved performance" → "improved API response time by 40%")
-- Ensure all section headers are ALL CAPS
-- Ensure every bullet starts with an action verb
-- Improve keyword density by naturally embedding JD terms
-- Fix inconsistent date formats
-- Remove any remaining clichés or filler phrases
-- Ensure clean blank lines between all sections
+ANTI-HALLUCINATION RULES:
+✗ Do NOT add any metrics or numbers that aren't already in the CV
+✗ Do NOT add tools, skills, or experience not already present
+✗ Do NOT "improve vague metrics" by inventing specific numbers
+✗ Do NOT change company names, dates, or qualifications
 
-What NOT to change:
-- Factual information (company names, dates, degrees, certifications)
-- The candidate's actual technologies and projects
-- Overall structure and section order
+WHAT YOU CAN FIX:
+✓ Replace weak action verbs with stronger ones (from the candidate's own bullets)
+✓ Tighten wordy sentences — remove redundant words
+✓ Ensure ALL section headers are ALL CAPS
+✓ Ensure every bullet starts with a past-tense action verb
+✓ Fix inconsistent date formats
+✓ Remove clichés and generic filler phrases
+✓ Ensure clean single blank line between sections
+✓ Embed JD keywords ONLY where they genuinely match existing content
 
 Return the COMPLETE improved CV as plain text only — no markdown, no labels, no explanation.`;
 
@@ -206,28 +224,12 @@ Return the COMPLETE improved CV as plain text only — no markdown, no labels, n
   let toastTimer = null;
 
   const FIELD_IDS = [
-    "targetRole",
-    "industry",
-    "expLevel",
-    "country",
-    "cvFormat",
-    "jobDescription",
-    "fullName",
-    "proTitle",
-    "email",
-    "phone",
-    "location",
-    "linkedin",
-    "github",
-    "portfolio",
-    "yearsExp",
-    "specialization",
-    "topSkills",
-    "achievements",
-    "summary",
-    "awards",
-    "volunteer",
-    "memberships",
+    "targetRole", "industry", "expLevel", "country", "cvFormat", "jobDescription",
+    "targetCompanies", "jobLocPref", "visaStatus", "relocate",
+    "fullName", "proTitle", "email", "phone", "location", "linkedin", "github", "portfolio",
+    "yearsExp", "specialization", "topSkills", "achievements", "summary",
+    "awards", "volunteer", "memberships",
+    "careerGaps", "salaryExp", "remoteHybrid",
   ];
 
   const SKILL_MAP = {
@@ -410,23 +412,14 @@ Return the COMPLETE improved CV as plain text only — no markdown, no labels, n
   let _suppressUnload = false;
 
   const PANEL_FIELDS = {
-    0: ["targetRole", "industry", "country", "jobDescription"],
-    1: [
-      "fullName",
-      "proTitle",
-      "email",
-      "phone",
-      "location",
-      "linkedin",
-      "github",
-      "portfolio",
-    ],
-    2: ["yearsExp", "specialization", "topSkills", "achievements", "summary"],
+    0: ["targetRole","industry","country","jobDescription","targetCompanies","jobLocPref","visaStatus","relocate"],
+    1: ["fullName","proTitle","email","phone","location","linkedin","github","portfolio"],
+    2: ["yearsExp","specialization","topSkills","achievements","summary"],
     3: [],
     4: [],
     5: [],
     6: [],
-    7: ["awards", "volunteer", "memberships"],
+    7: ["awards","volunteer","memberships","careerGaps","salaryExp","remoteHybrid"],
     8: [],
   };
 
@@ -1022,28 +1015,16 @@ Return the COMPLETE improved CV as plain text only — no markdown, no labels, n
 
   /* ── CV Prompt builder — fully structured ── */
   function buildCVPrompt() {
-    const role = g("targetRole"),
-      industry = g("industry"),
-      level = g("expLevel");
-    const country = g("country"),
-      format = g("cvFormat"),
-      jd = g("jobDescription");
-    const name = g("fullName"),
-      title = g("proTitle"),
-      email = g("email");
-    const phone = g("phone"),
-      loc = g("location"),
-      linkedin = g("linkedin");
-    const github = g("github"),
-      portfolio = g("portfolio");
-    const yrs = g("yearsExp"),
-      spec = g("specialization");
-    const topsk = g("topSkills"),
-      ach = g("achievements"),
-      summary = g("summary");
-    const awards = g("awards"),
-      volunteer = g("volunteer"),
-      memberships = g("memberships");
+    const role       = g("targetRole"), industry = g("industry"), level = g("expLevel");
+    const country    = g("country"),    format   = g("cvFormat"), jd    = g("jobDescription");
+    const name       = g("fullName"),   title    = g("proTitle"), email = g("email");
+    const phone      = g("phone"),      loc      = g("location"), linkedin = g("linkedin");
+    const github     = g("github"),     portfolio = g("portfolio");
+    const yrs        = g("yearsExp"),   spec     = g("specialization");
+    const topsk      = g("topSkills"),  ach      = g("achievements"), summary = g("summary");
+    const awards     = g("awards"),     volunteer = g("volunteer"), memberships = g("memberships");
+    const careerGaps = g("careerGaps"), salaryExp = g("salaryExp"), remoteHybrid = g("remoteHybrid");
+    const targetCompanies = g("targetCompanies"), visaStatus = g("visaStatus"), relocate = g("relocate");
 
     const expStr = data.experiences.length
       ? data.experiences
@@ -1051,13 +1032,19 @@ Return the COMPLETE improved CV as plain text only — no markdown, no labels, n
             [
               `ROLE: ${safeStr(e.title)} at ${safeStr(e.company)}`,
               `DATES: ${safeStr(e.start)} – ${safeStr(e.end) || "Present"} | TYPE: ${safeStr(e.etype)} | LOCATION: ${safeStr(e.loc)}`,
-              `TECHNOLOGIES: ${safeStr(e.tech) || "Not specified"}`,
+              e.dept      ? `DEPARTMENT: ${safeStr(e.dept)}` : "",
+              e.reporting ? `REPORTING TO: ${safeStr(e.reporting)}` : "",
+              e.teamsize  ? `TEAM MANAGED: ${safeStr(e.teamsize)}` : "",
+              e.tech      ? `TECHNOLOGIES/TOOLS: ${safeStr(e.tech)}` : "",
+              e.volume    ? `VOLUME & SCALE: ${safeStr(e.volume)}` : "",
               `RESPONSIBILITIES: ${safeStr(e.resp) || "Not provided"}`,
-              `ACHIEVEMENTS: ${safeStr(e.achiev) || "Not provided"}`,
-            ].join("\n"),
+              e.achiev    ? `ACHIEVEMENTS (use these numbers exactly): ${safeStr(e.achiev)}` : "",
+              e.problems  ? `PROBLEMS SOLVED: ${safeStr(e.problems)}` : "",
+              e.kpis      ? `KPIs MEASURED ON: ${safeStr(e.kpis)}` : "",
+            ].filter(Boolean).join("\n"),
           )
           .join("\n\n")
-      : `NO ENTRIES PROVIDED — generate 2 realistic placeholder entries for a ${level || "mid-level"} ${role} in ${industry || "the relevant industry"}. Use plausible company names, technologies, and quantified achievements.`;
+      : "NOT PROVIDED — omit the WORK EXPERIENCE section entirely. Do not invent any jobs, companies, or dates.";
 
     const projStr = data.projects.length
       ? data.projects
@@ -1066,7 +1053,7 @@ Return the COMPLETE improved CV as plain text only — no markdown, no labels, n
               `PROJECT: ${safeStr(p.name)}\nROLE: ${safeStr(p.role)}\nTECH: ${safeStr(p.tech)}\nDESCRIPTION: ${safeStr(p.desc)}\nIMPACT: ${safeStr(p.impact)}\nURL: ${safeStr(p.url)}`,
           )
           .join("\n\n")
-      : "No projects provided";
+      : "NOT PROVIDED — omit the PROJECTS section entirely.";
 
     const eduStr = data.education.length
       ? data.education
@@ -1075,7 +1062,7 @@ Return the COMPLETE improved CV as plain text only — no markdown, no labels, n
               `DEGREE: ${safeStr(e.degree)}\nINSTITUTION: ${safeStr(e.institution)}\nYEAR: ${safeStr(e.year)}\nGRADE: ${safeStr(e.cgpa)}\nCOURSEWORK: ${safeStr(e.coursework)}`,
           )
           .join("\n\n")
-      : "No education provided";
+      : "NOT PROVIDED — omit the EDUCATION section entirely.";
 
     const certStr = data.certifications.length
       ? data.certifications
@@ -1084,42 +1071,54 @@ Return the COMPLETE improved CV as plain text only — no markdown, no labels, n
               `${safeStr(c.name)} | ${safeStr(c.org)} | ${safeStr(c.date)}`,
           )
           .join("\n")
-      : "No certifications provided";
+      : "NOT PROVIDED — omit the CERTIFICATIONS section entirely.";
 
-    return `Generate a complete, ATS-optimized professional CV.
+    /* Build contact line — only include fields that have actual values */
+    const contactParts = [phone, email, loc, linkedin, github, portfolio].filter(Boolean);
+    const contactLine  = contactParts.join(" | ");
 
-━━━ TARGET ━━━
-Job Title: ${role}
+    /* Build skills block — omit categories with no data */
+    const skillLines = [
+      data.skills.tech.length  ? `Technical: ${data.skills.tech.join(", ")}` : "",
+      data.skills.tool.length  ? `Tools & Platforms: ${data.skills.tool.join(", ")}` : "",
+      data.skills.meth.length  ? `Methodologies: ${data.skills.meth.join(", ")}` : "",
+      data.skills.soft.length  ? `Soft Skills: ${data.skills.soft.join(", ")}` : "",
+      data.skills.lang.length  ? `Languages: ${data.skills.lang.join(", ")}` : "",
+    ].filter(Boolean).join("\n") || "OMIT THIS SECTION — no skills provided";
+
+    /* Summary context — only from real data */
+    const summaryContext = summary ||
+      [
+        yrs   ? `${yrs} years of experience.` : "",
+        spec  ? `Specialised in ${spec}.`     : "",
+        topsk ? `Key skills: ${topsk}.`       : "",
+      ].filter(Boolean).join(" ") ||
+      "Write a brief professional summary based ONLY on the experience and skills provided below.";
+
+    return `TASK: Format the candidate's data below into a professional ATS-optimized CV.
+
+CRITICAL: Use ONLY the data provided. If a section says "NOT PROVIDED", omit it entirely — do not write the header, do not invent content.
+
+━━━ TARGET JOB ━━━
+Job Title: ${role || "Not specified"}
 Industry: ${industry || "Not specified"}
 Experience Level: ${level || "Not specified"}
 Country/Region: ${country || "Not specified"}
 CV Format: ${format || "Chronological"}
-${jd ? `\n━━━ JOB DESCRIPTION (embed ALL keywords verbatim, naturally) ━━━\n${jd.slice(0, 3500)}\n` : ""}
-━━━ CANDIDATE CONTACT ━━━
-Full Name: ${name || "[Candidate Name]"}
-Professional Title: ${title || role}
-Email: ${email || "[email not provided]"}
-Phone: ${phone || ""}
-Location: ${loc || ""}
-LinkedIn: ${linkedin || ""}
-GitHub: ${github || ""}
-Portfolio: ${portfolio || ""}
+${jd ? `\n━━━ JOB DESCRIPTION (embed matching keywords only where candidate's background genuinely supports them) ━━━\n${jd.slice(0, 3500)}\n` : ""}
+━━━ CANDIDATE CONTACT (use only what is provided below) ━━━
+Full Name: ${name || "NOT PROVIDED — omit name line"}
+Contact Line: ${contactLine || "NOT PROVIDED"}
+${title ? `Professional Headline: ${title}` : ""}
 
-━━━ PROFESSIONAL SUMMARY (rewrite/enhance this, keeping all facts) ━━━
-${summary || `${yrs ? yrs + " years of experience. " : ""}${spec ? "Specialised in " + spec + ". " : ""}${topsk ? "Technologies: " + topsk + "." : ""}`}
-
-━━━ KEY ACHIEVEMENTS (weave into experience bullets, don't list separately) ━━━
-${ach || "Not provided"}
+━━━ PROFESSIONAL SUMMARY ━━━
+${summaryContext}
 
 ━━━ WORK EXPERIENCE ━━━
 ${expStr}
 
 ━━━ TECHNICAL SKILLS ━━━
-Technical: ${data.skills.tech.join(", ") || "Not provided"}
-Tools & Platforms: ${data.skills.tool.join(", ") || "Not provided"}
-Methodologies: ${data.skills.meth.join(", ") || "Not provided"}
-Soft Skills: ${data.skills.soft.join(", ") || "Not provided"}
-Languages: ${data.skills.lang.join(", ") || "Not provided"}
+${skillLines}
 
 ━━━ PROJECTS ━━━
 ${projStr}
@@ -1129,17 +1128,24 @@ ${eduStr}
 
 ━━━ CERTIFICATIONS ━━━
 ${certStr}
-${awards ? "\n━━━ AWARDS & HONOURS ━━━\n" + awards : ""}
-${volunteer ? "\n━━━ VOLUNTEER WORK ━━━\n" + volunteer : ""}
-${memberships ? "\n━━━ MEMBERSHIPS ━━━\n" + memberships : ""}
+${awards    ? "\n━━━ AWARDS & HONOURS ━━━\n" + awards       : ""}
+${volunteer ? "\n━━━ VOLUNTEER WORK ━━━\n"   + volunteer    : ""}
+${memberships ? "\n━━━ MEMBERSHIPS ━━━\n"    + memberships  : ""}
+${ach          ? "\n━━━ KEY ACHIEVEMENTS (weave into bullets, not a separate section) ━━━\n" + ach : ""}
+${careerGaps   ? "\n━━━ CAREER GAPS (context only — explain gap if shown between dates) ━━━\n" + careerGaps : ""}
+${visaStatus   ? "\n━━━ VISA / WORK AUTHORISATION STATUS ━━━\n" + visaStatus : ""}
+${remoteHybrid ? "\n━━━ WORK MODE PREFERENCE (context only) ━━━\n" + remoteHybrid : ""}
+${targetCompanies ? "\n━━━ TARGET COMPANIES (context only — do NOT name them in CV) ━━━\n" + targetCompanies : ""}
 
-━━━ INSTRUCTIONS ━━━
-- Follow the output format in your system prompt EXACTLY
-- Embed all extracted keywords from the job description naturally throughout
-- For any section with "Not provided" data, generate realistic content appropriate for the role and level
-- Every experience bullet must start with a strong past-tense action verb
-- At least 60% of bullets must include a quantified result
-- Output plain text only — no markdown, no HTML, no explanation`;
+━━━ OUTPUT RULES ━━━
+1. Output plain text only — no markdown, no HTML
+2. Max 450 words total — trim to highest-impact content
+3. Max 3 bullets per job, max 18 words per bullet
+4. Every bullet starts with a past-tense action verb
+5. ONLY include metrics/numbers the candidate explicitly provided
+6. Omit entire sections if marked NOT PROVIDED
+7. If experience is empty: write ONLY a skills-based summary and omit WORK EXPERIENCE header
+8. Never add company names, tools, metrics, or dates not in the data above`;
   }
 
   /* ── ATS Score (temp 0.2 — must be consistent JSON) ── */
@@ -1281,302 +1287,448 @@ ${memberships ? "\n━━━ MEMBERSHIPS ━━━\n" + memberships : ""}
     showToast("✓ TXT downloaded", "success");
   }
 
+
+  /* ── exportHTML: download clean CV HTML file ── */
   function exportHTML() {
     const cvText = getCVText();
-    const name = g("fullName") || "Candidate",
-      role = g("targetRole") || "Professional";
-    const html = buildPDFHtml(cvText, name, role, false);
+    if (!cvText) { showToast("Generate your CV first"); return; }
+    const name = g("fullName") || "Candidate";
+    const role = g("targetRole") || "Professional";
+    /* Pass mode="download" — includes print hint, hides it on @media print */
+    const html = buildCVHtmlDoc(cvText, name, role, "download");
     triggerDownload(
-      new Blob([html], { type: "text/html" }),
-      `${slugify(name)}_${slugify(role)}_CV.html`,
+      new Blob([html], { type: "text/html;charset=utf-8" }),
+      `${slugify(name)}_${slugify(role)}_CV.html`
     );
-    showToast("✓ HTML downloaded", "success");
+    showToast("✓ HTML downloaded — open in browser, Ctrl+P → Save as PDF", "success", 5000);
   }
 
-  /* ── PDF — renders Resume.pdf layout ─────────────────────
-     Layout matches the uploaded Resume.pdf:
-     • Name large + bold, centered
-     • Contact icons row, centered, smaller
-     • Section headers: uppercase, left-aligned, underlined
-     • Experience: role bold left, date right (flex row)
-     • Company italic, location right
-     • Bullets: indented, tight line-height
-     • Skills: category label bold + inline comma list
-     • Clean typography: 10.5pt Calibri/Arial, 1.4 line-height
-  ──────────────────────────────────────────────────────── */
-  function buildPDFHtml(cvText, name, role, printHint = true) {
-    const lines = cvText.split("\n");
-    let html = "";
-    let i = 0;
+  /* ══════════════════════════════════════════════════════════════════
+     buildCVHtmlDoc(cvText, name, role, mode)
+     mode = "download"  → HTML file, shows print hint (hidden on print)
+     mode = "print"     → New-tab print window, no hint, auto-prints
+     mode = "preview"   → Screen preview only
 
-    /* Helper — detect ALL CAPS section headers */
-    const isSectionHeader = (line) => {
-      const t = line.trim();
-      return (
-        t.length > 2 &&
-        t === t.toUpperCase() &&
-        !/^[•\-\*]/.test(t) &&
-        !/\d{4}/.test(t)
-      );
+     Matches Resume.pdf (Adeeb Danish) layout EXACTLY:
+       • Name bold centered ~18pt (not uppercased by CSS)
+       • Contact: 1-2 centered rows, pipe-separated, 9pt
+       • Full-width rule under header
+       • Section headers: ALL CAPS bold, border-bottom
+       • Experience: [Job Title · Company    Date] flex row
+       • Sub-line: Location / type, normal weight
+       • Bullets: indented, dash or bullet char, 10pt
+       • Projects: name bold, bullet desc, italic tech line
+       • Skills: Bold label: inline values
+       • Education: [Degree · Institution    Year] flex row
+       • Certifications: bullet list
+  ══════════════════════════════════════════════════════════════════ */
+  function buildCVHtmlDoc(cvText, name, role, mode) {
+    if (!cvText || !cvText.trim()) return "";
+    const lines = cvText.split("\n");
+    let bodyHtml = "";
+    let i = 0;
+    const N = lines.length;
+
+    /* ── Helpers ── */
+    const esc    = (s) => escapeHtml(safeStr(s));
+    /* Strip markdown bold/italic artifacts the AI sometimes outputs */
+    const clean  = (s) => safeStr(s).replace(/\*\*|__/g, "").replace(/\*(.*?)\*/g, "$1");
+    const ec     = (s) => esc(clean(s));
+
+    const hasYear  = (t) => /\b(19|20)\d{2}\b/.test(t);
+    const isBullet = (t) => /^[•–\-]\s/.test(t) || t.startsWith("• ");
+    const isCapsHeader = (t) =>
+      t.length > 2 &&
+      t === t.toUpperCase() &&
+      /[A-Z]/.test(t) &&
+      !hasYear(t) &&
+      !isBullet(t) &&
+      !/^\d/.test(t) &&
+      !t.includes("@");
+    const isContact = (t) =>
+      t.length < 260 &&
+      (t.includes("|") || t.includes("@") || /^\+\d/.test(t) ||
+       /linkedin|github/i.test(t));
+    const isSkillRow = (t) =>
+      /^[A-Za-z][A-Za-z ,&\/\(\)]+:\s+\S/.test(t) &&
+      !hasYear(t) && !isBullet(t) && !isCapsHeader(t);
+
+    const nextNonEmpty = (from) => {
+      for (let j = from + 1; j < N; j++) {
+        const t = lines[j].trim();
+        if (t) return t;
+      }
+      return "";
     };
 
-    /* Detect contact line (contains @ or + or pipe) */
-    const isContactLine = (line) => /[@|+]/.test(line) && line.length < 220;
+    /* ══ PARSE DATE from end of line ══
+       "Freelance Full-Stack Developer  2023 – Present"
+       "Bachelor of Science | University  2020 – 2024"
+       Returns { title, date } or null                  */
+    const splitTitleDate = (t) => {
+      /* Patterns: "Title  YYYY – YYYY", "Title  YYYY – Present", "Title  YYYY" */
+      const m =
+        t.match(/^(.+?)\s{2,}(\d{4}\s*[–\-—]\s*(?:\d{4}|[Pp]resent))\s*$/) ||
+        t.match(/^(.+?)\s+(\d{4}\s*[–\-—]\s*(?:\d{4}|[Pp]resent))\s*$/)    ||
+        t.match(/^(.+?)\s{2,}(\d{4})\s*$/);
+      if (!m) return null;
+      return { title: m[1].trim(), date: m[2].trim() };
+    };
 
-    /* Parse name = first non-empty line */
-    while (i < lines.length && !lines[i].trim()) i++;
-    const candidateName = lines[i]
-      ? escapeHtml(lines[i].trim())
-      : escapeHtml(name);
+    /* ══ NAME: first non-empty line ══ */
+    while (i < N && !lines[i].trim()) i++;
+    const candidateName = i < N ? ec(lines[i].trim()) : ec(name);
     i++;
 
-    /* Next line(s) = contact */
-    let contactHtml = "";
-    while (i < lines.length && (isContactLine(lines[i]) || !lines[i].trim())) {
-      if (lines[i].trim()) {
-        /* Split by | and render each part with subtle separator */
-        const parts = lines[i]
-          .trim()
-          .split("|")
-          .map((p) => escapeHtml(p.trim()))
-          .filter(Boolean);
-        contactHtml = parts.join(' <span class="sep">|</span> ');
+    /* ══ CONTACT ROWS: consecutive contact-style lines ══ */
+    const contactRows = [];
+    while (i < N) {
+      const t = lines[i].trim();
+      if (!t) { i++; continue; }
+      if (isContact(t)) {
+        const parts = t.split("|").map(p => ec(p.trim())).filter(Boolean);
+        contactRows.push(parts.join('<span class="pipe"> | </span>'));
+        i++;
+      } else {
+        break;
       }
-      i++;
-      if (!isContactLine(lines[i] || "")) break;
     }
 
-    html += `<div class="cv-name">${candidateName}</div>`;
-    if (contactHtml) html += `<div class="cv-contact">${contactHtml}</div>`;
-    html += `<div class="cv-name-rule"></div>`;
+    bodyHtml += `<div class="cv-header">
+  <div class="cv-name">${candidateName}</div>
+  <div class="cv-contact">${contactRows.map(r => `<div class="contact-row">${r}</div>`).join("")}</div>
+  <div class="cv-header-rule"></div>
+</div>`;
 
-    /* Render rest of CV */
-    while (i < lines.length) {
-      const line = lines[i];
-      const trimmed = line.trim();
+    /* ══ BODY: section by section ══ */
+    while (i < N) {
+      const t = lines[i].trim();
+      if (!t) { i++; continue; }
 
-      if (!trimmed) {
-        /* blank line — small spacer */
-        html += `<div class="cv-spacer"></div>`;
+      /* SECTION HEADER */
+      if (isCapsHeader(t)) {
+        bodyHtml += `\n<div class="cv-section">\n<div class="cv-sh">${ec(t)}</div>`;
         i++;
-        continue;
-      }
 
-      if (isSectionHeader(trimmed)) {
-        html += `<div class="cv-section-header">${escapeHtml(trimmed)}</div>`;
-        i++;
-        continue;
-      }
+        /* Collect section content */
+        while (i < N) {
+          const rt = lines[i].trim();
+          /* Next section header = end of this section */
+          if (rt && isCapsHeader(rt)) break;
+          if (!rt) { i++; continue; }
 
-      if (trimmed.startsWith("•")) {
-        /* bullet */
-        html += `<div class="cv-bullet"><span class="cv-bullet-dot">•</span><span class="cv-bullet-text">${escapeHtml(trimmed.slice(1).trim())}</span></div>`;
-        i++;
-        continue;
-      }
+          /* ── BULLET ── */
+          if (isBullet(rt)) {
+            const raw  = rt.replace(/^[•–\-]\s*/, "");
+            const char = rt[0] === "•" ? "•" : "–";
+            /* Tech sub-line inside projects: "Tech: Go, SQL" */
+            if (/^[Tt]ech:\s/.test(raw)) {
+              bodyHtml += `<div class="proj-tech">${ec(raw)}</div>`;
+            } else {
+              bodyHtml += `<div class="cv-bullet"><span class="bchar">${char}</span><span class="btext">${ec(raw)}</span></div>`;
+            }
+            i++; continue;
+          }
 
-      /* Detect "Role | Company" or "Role at Company" pattern */
-      const isRoleLine =
-        /\bat\b/.test(trimmed) ||
-        (trimmed.includes("|") &&
-          !/[@+]/.test(trimmed) &&
-          !trimmed.startsWith("•"));
-      /* Detect date range line: contains YYYY */
-      const isDateLine = /\d{4}/.test(trimmed) && trimmed.length < 100;
-      /* Detect skills label: "Backend: " or "Technical: " */
-      const isSkillLabel = /^[A-Za-z\s&]+:\s/.test(trimmed) && !isDateLine;
+          /* ── SKILL ROW ── */
+          if (isSkillRow(rt)) {
+            const colon = rt.indexOf(":");
+            const label = rt.slice(0, colon + 1);
+            const value = rt.slice(colon + 1).trim();
+            bodyHtml += `<div class="cv-skill"><span class="sk-label">${ec(label)}</span><span class="sk-value"> ${ec(value)}</span></div>`;
+            i++; continue;
+          }
 
-      if (isSkillLabel) {
-        const colonIdx = trimmed.indexOf(":");
-        const label = trimmed.slice(0, colonIdx + 1);
-        const val = trimmed.slice(colonIdx + 1).trim();
-        html += `<div class="cv-skill-row"><span class="cv-skill-label">${escapeHtml(label)}</span> <span class="cv-skill-val">${escapeHtml(val)}</span></div>`;
-        i++;
-        continue;
-      }
+          /* ── LINE WITH INLINE DATE (title + date on same line) ── */
+          if (hasYear(rt) && rt.length < 130) {
+            const sd = splitTitleDate(rt);
+            if (sd) {
+              bodyHtml += `<div class="cv-entry-row"><span class="entry-title">${ec(sd.title)}</span><span class="entry-date">${ec(sd.date)}</span></div>`;
+              i++; continue;
+            }
+            /* Has year but doesn't split cleanly → meta line */
+            bodyHtml += `<div class="cv-entry-meta">${ec(rt)}</div>`;
+            i++; continue;
+          }
 
-      if (isDateLine && trimmed.length < 80) {
-        html += `<div class="cv-date-line">${escapeHtml(trimmed)}</div>`;
-        i++;
-        continue;
-      }
+          /* ── ENTRY TITLE or META ── */
+          const nxt = nextNonEmpty(i);
+          /* If next line has year OR is a short meta → this is a title */
+          const nxtHasYear = hasYear(nxt) && nxt.length < 130;
+          const nxtIsMeta  = nxt && !isBullet(nxt) && !isCapsHeader(nxt) &&
+                             !isSkillRow(nxt) && nxt.length < 100 && !hasYear(nxt);
+          const nxtIsBullet = isBullet(nxt);
 
-      /* Check if next non-empty line is a date → this is an entry title */
-      let nextNonEmpty = "";
-      for (let j = i + 1; j < lines.length; j++) {
-        if (lines[j].trim()) {
-          nextNonEmpty = lines[j].trim();
-          break;
+          if (nxtHasYear || nxtIsMeta || nxtIsBullet) {
+            /* Determine if bold (title) or normal (meta) */
+            /* First occurrence in a group of lines → title */
+            bodyHtml += `<div class="cv-entry-title">${ec(rt)}</div>`;
+            i++; continue;
+          }
+
+          /* Short non-date, non-bullet line after a title → meta */
+          if (rt.length < 90 && !isCapsHeader(rt) && !isSkillRow(rt)) {
+            bodyHtml += `<div class="cv-entry-meta">${ec(rt)}</div>`;
+            i++; continue;
+          }
+
+          /* Paragraph fallback */
+          bodyHtml += `<div class="cv-para">${ec(rt)}</div>`;
+          i++;
         }
-      }
-      const nextIsDate = /\d{4}/.test(nextNonEmpty) && nextNonEmpty.length < 80;
 
-      if (nextIsDate && !isDateLine) {
-        /* Entry title line */
-        html += `<div class="cv-entry-title">${escapeHtml(trimmed)}</div>`;
-        i++;
+        bodyHtml += `\n</div>`; /* close cv-section */
         continue;
       }
 
-      /* Default: paragraph line */
-      html += `<div class="cv-para">${escapeHtml(trimmed)}</div>`;
+      /* Top-level content before any section */
+      bodyHtml += `<div class="cv-para">${ec(t)}</div>`;
       i++;
     }
+
+    /* ══ CSS ══ */
+    const css = `
+/* ── Reset ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ── Page (print) ── */
+@page{size:A4 portrait;margin:18mm 20mm 18mm 20mm}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+/* ── Body ── */
+body{
+  font-family:"Calibri","Segoe UI","Helvetica Neue",Arial,sans-serif;
+  font-size:10.5pt;
+  line-height:1.45;
+  color:#111;
+  background:#fff;
+}
+
+/* ── Screen container ── */
+@media screen{
+  body{
+    max-width:170mm;
+    margin:0 auto;
+    padding:24px 28px;
+    box-shadow:0 2px 24px rgba(0,0,0,.13);
+    min-height:297mm;
+  }
+}
+
+/* ── Print hint bar ── */
+.print-hint{
+  background:#f0f4ff;
+  border:1px solid #c5d8f5;
+  border-radius:6px;
+  padding:9px 14px;
+  font-size:10.5px;
+  font-family:Arial,sans-serif;
+  color:#2a3a5c;
+  text-align:center;
+  margin-bottom:18px;
+  line-height:1.55;
+}
+@media print{
+  .print-hint{display:none!important}
+  body{padding:0;max-width:none}
+}
+
+/* ── Header ── */
+.cv-header{margin-bottom:0}
+.cv-name{
+  font-size:18pt;
+  font-weight:700;
+  text-align:center;
+  color:#0a0a0a;
+  line-height:1.15;
+  margin-bottom:2.5pt;
+}
+.cv-contact{
+  text-align:center;
+  font-size:9pt;
+  color:#222;
+  line-height:1.6;
+  margin-bottom:4.5pt;
+}
+.contact-row{display:block}
+.pipe{color:#555;margin:0 1.5pt}
+.cv-header-rule{
+  border:none;
+  border-top:1pt solid #111;
+  margin-bottom:0;
+}
+
+/* ── Sections ── */
+.cv-section{margin-top:8pt}
+.cv-sh{
+  font-size:10pt;
+  font-weight:700;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:#0a0a0a;
+  border-bottom:.75pt solid #333;
+  padding-bottom:1.5pt;
+  margin-bottom:4pt;
+  page-break-after:avoid;
+}
+
+/* ── Entry row: title left + date right ── */
+.cv-entry-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:6pt;
+  font-size:10.5pt;
+  font-weight:700;
+  color:#0a0a0a;
+  margin-top:5pt;
+  margin-bottom:0;
+  page-break-after:avoid;
+}
+.entry-title{flex:1;font-weight:700}
+.entry-date{
+  flex-shrink:0;
+  font-weight:400;
+  font-size:10pt;
+  color:#222;
+  white-space:nowrap;
+}
+
+/* ── Entry title (no date on same line) ── */
+.cv-entry-title{
+  font-size:10.5pt;
+  font-weight:700;
+  color:#0a0a0a;
+  margin-top:5pt;
+  margin-bottom:0;
+  page-break-after:avoid;
+}
+
+/* ── Entry meta: company / institution / location ── */
+.cv-entry-meta{
+  font-size:10pt;
+  font-weight:400;
+  color:#333;
+  margin-top:.5pt;
+  margin-bottom:1pt;
+}
+
+/* ── Bullets ── */
+.cv-bullet{
+  display:flex;
+  align-items:flex-start;
+  gap:3pt;
+  padding-left:10pt;
+  margin-top:2pt;
+  margin-bottom:0;
+  font-size:10pt;
+  line-height:1.43;
+}
+.bchar{flex-shrink:0;width:7pt;color:#222;margin-top:.3pt}
+.btext{flex:1}
+
+/* ── Project tech sub-line ── */
+.proj-tech{
+  font-size:9.5pt;
+  color:#444;
+  padding-left:17pt;
+  margin-top:.5pt;
+  margin-bottom:1pt;
+  font-style:italic;
+}
+
+/* ── Skills ── */
+.cv-skill{font-size:10pt;line-height:1.43;margin-top:2pt}
+.sk-label{font-weight:700}
+.sk-value{font-weight:400;color:#111}
+
+/* ── Paragraph ── */
+.cv-para{font-size:10pt;line-height:1.45;margin-top:2.5pt;color:#111}
+
+/* ── Print page-break rules ── */
+@media print{
+  .cv-sh{page-break-after:avoid}
+  .cv-entry-row{page-break-after:avoid}
+  .cv-entry-title{page-break-after:avoid}
+  .cv-bullet{page-break-inside:avoid}
+}
+`;
+
+    /* Print hint: shown on screen, hidden on @media print */
+    const hint = (mode === "download")
+      ? `<div class="print-hint">
+  📄 <strong>Save as PDF:</strong> Press <strong>Ctrl+P</strong> (Windows) or <strong>Cmd+P</strong> (Mac)
+  &nbsp;→&nbsp; Destination: <strong>Save as PDF</strong>
+  &nbsp;→&nbsp; Paper size: <strong>A4</strong>
+  &nbsp;→&nbsp; Margins: <strong>Default</strong>
+  &nbsp;→&nbsp; Click <strong>Save</strong>
+</div>`
+      : "";
+
+    /* Auto-print script for print mode */
+    const autoPrint = (mode === "print")
+      ? `<script>window.addEventListener("load",function(){setTimeout(function(){window.print()},400)});<\/script>`
+      : "";
 
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>${escapeHtml(name)} — ${escapeHtml(role)} CV</title>
-<style>
-/* ── Page setup matching Resume.pdf ── */
-@page { size: A4; margin: 18mm 20mm 16mm 20mm; }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 10.5pt; }
-body {
-  font-family: "Calibri", "Arial", "Helvetica Neue", sans-serif;
-  color: #1a1a1a;
-  line-height: 1.42;
-  background: #fff;
-}
-
-/* ── Name block ── */
-.cv-body {
-  max-width: 180mm;
-  margin: 20px auto;
-  padding: 0;
-}
-
-.cv-name {
-  font-size: 22pt;
-  font-weight: 700;
-  text-align: center;
-  letter-spacing: 0.04em;
-  color: #111;
-  margin-bottom: 5pt;
-  text-transform: uppercase;
-}
-.cv-contact {
-  text-align: center;
-  font-size: 9pt;
-  color: #333;
-  margin-bottom: 6pt;
-  letter-spacing: 0.01em;
-}
-.cv-contact .sep { color: #888; margin: 0 3px; }
-.cv-name-rule {
-  border-bottom: 1.5px solid #1a1a1a;
-  margin-bottom: 9pt;
-}
-
-/* ── Section headers ── */
-.cv-section-header {
-  font-size: 10pt;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #111;
-  border-bottom: 1px solid #888;
-  padding-bottom: 2pt;
-  margin-top: 10pt;
-  margin-bottom: 5pt;
-}
-
-/* ── Entry title (Job Title | Company) ── */
-.cv-entry-title {
-  font-size: 10.5pt;
-  font-weight: 700;
-  color: #111;
-  margin-top: 5pt;
-  margin-bottom: 1pt;
-}
-
-/* ── Date / location line ── */
-.cv-date-line {
-  font-size: 9.5pt;
-  color: #444;
-  font-style: italic;
-  margin-bottom: 3pt;
-}
-
-/* ── Bullets ── */
-.cv-bullet {
-  display: flex;
-  align-items: flex-start;
-  gap: 5pt;
-  margin: 2pt 0 2pt 10pt;
-  font-size: 10pt;
-  line-height: 1.4;
-}
-.cv-bullet-dot {
-  flex-shrink: 0;
-  margin-top: 0.5pt;
-  color: #222;
-}
-.cv-bullet-text { flex: 1; }
-
-/* ── Skills ── */
-.cv-skill-row {
-  font-size: 10pt;
-  margin: 2pt 0 2pt 0;
-  line-height: 1.4;
-}
-.cv-skill-label { font-weight: 700; }
-.cv-skill-val   { color: #1a1a1a; }
-
-/* ── Paragraph ── */
-.cv-para {
-  font-size: 10pt;
-  margin: 2pt 0;
-  line-height: 1.42;
-}
-
-/* ── Spacers ── */
-.cv-spacer { height: 4pt; }
-
-/* ── Print hint (screen only) ── */
-.print-hint {
-  background: #f0f4ff;
-  border-bottom: 1px solid #bed;
-  text-align: center;
-  padding: 12px;
-  font-size: 12px;
-  font-family: Arial, sans-serif;
-  color: #334;
-}
-@media print {
-  .print-hint { display: none; }
-  .cv-section-header { break-after: avoid; }
-  .cv-entry-title { break-after: avoid; }
-}
-</style>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${ec(name)} — ${ec(role)} CV</title>
+<style>${css}</style>
+${autoPrint}
 </head>
 <body>
-${printHint ? `<div class="print-hint"><strong>Ctrl+P</strong> → Destination: <strong>Save as PDF</strong> → Paper: <strong>A4</strong> → Margins: <strong>Default</strong></div>` : ""}
-<div class="cv-body">
-${html}
-</div>
+${hint}${bodyHtml}
 </body>
 </html>`;
   }
 
+  /* ── buildPDFHtml alias (backward compat) ── */
+  function buildPDFHtml(cvText, name, role) {
+    return buildCVHtmlDoc(cvText, name, role, "print");
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     exportPDF
+     Strategy: open CV in new tab with mode="print"
+     The page auto-calls window.print() after load.
+     User picks "Save as PDF" in the system print dialog.
+     This is the MOST reliable cross-device approach:
+       ✓ Chrome, Firefox, Safari, Edge
+       ✓ iOS Safari (share → Print)
+       ✓ Android Chrome (⋮ → Print)
+       ✓ No CDN dependency
+       ✓ Vector text (not rasterized JPEG)
+       ✓ Exact A4 @page margins respected
+       ✓ Works offline
+  ══════════════════════════════════════════════════════════════ */
   function exportPDF() {
     const cvText = getCVText();
-    if (!cvText) {
-      showToast("Generate your CV first");
-      return;
-    }
-    const name = g("fullName") || "Candidate",
-      role = g("targetRole") || "Professional";
-    const html = buildPDFHtml(cvText, name, role, true);
-    const w = window.open("", "_blank");
+    if (!cvText) { showToast("Generate your CV first"); return; }
+    const name = g("fullName") || "Candidate";
+    const role = g("targetRole") || "Professional";
+
+    const html = buildCVHtmlDoc(cvText, name, role, "print");
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url  = URL.createObjectURL(blob);
+
+    const w = window.open(url, "_blank");
     if (!w) {
-      showToast("Allow popups to export PDF", "error");
+      /* Popup blocked — fallback: download HTML with instructions */
+      URL.revokeObjectURL(url);
+      showToast("Popups blocked — downloading HTML file instead. Open it and press Ctrl+P → Save as PDF.", "error", 7000);
+      triggerDownload(
+        new Blob([buildCVHtmlDoc(cvText, name, role, "download")], { type: "text/html;charset=utf-8" }),
+        `${slugify(name)}_${slugify(role)}_CV_print.html`
+      );
       return;
     }
-    w.document.write(html);
-    w.document.close();
-    setTimeout(() => w.print(), 600);
+
+    /* Revoke blob URL after the window has had time to load */
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    showToast("📄 Print dialog opening — choose 'Save as PDF' → A4 → Default margins", "", 6000);
   }
 
   /* RTF export */
@@ -1648,20 +1800,20 @@ ${html}
 <div class="g2">
   <div class="field">
     <label>Job Title <span class="req">*</span></label>
-    <input id="mf_title" value="${escapeAttr(d.title)}" placeholder="e.g. Backend Developer, Staff Nurse, Accountant">
-    <div class="fhint">💬 Use the exact title from the job posting if possible.</div>
+    <input id="mf_title" value="${escapeAttr(d.title)}" placeholder="e.g. Backend Developer, Sales Manager">
+    <div class="fhint">💬 Use the exact title from your employment contract or offer letter.</div>
   </div>
   <div class="field">
     <label>Company / Organisation <span class="req">*</span></label>
     <input id="mf_company" value="${escapeAttr(d.company)}" placeholder="e.g. Infosys, Freelance, Self-Employed">
-    <div class="fhint">💬 If freelancing, write "Freelance" or "Self-Employed".</div>
+    <div class="fhint">💬 Official company name. Write "Freelance" or "Self-Employed" if applicable.</div>
   </div>
 </div>
 <div class="g3">
   <div class="field">
     <label>Start Date</label>
-    ${dateInput("mf_start", d.start, "Jan 2023")}
-    <div class="fhint">💬 Pick from calendar or type e.g. "Jan 2023".</div>
+    ${dateInput("mf_start", d.start, "Jan 2022")}
+    <div class="fhint">💬 Pick from calendar or type e.g. "Jan 2022".</div>
   </div>
   <div class="field">
     <label>End Date</label>
@@ -1672,35 +1824,75 @@ ${html}
     <label>Employment Type</label>
     <select id="mf_etype">
       <option value="">Select…</option>
-      ${["Full-time", "Part-time", "Contract", "Freelance", "Internship"].map((o) => `<option value="${o}"${d.etype === o ? " selected" : ""}>${o}</option>`).join("")}
+      ${["Full-time","Part-time","Contract","Freelance","Internship"].map(o=>`<option value="${o}"${d.etype===o?" selected":""}>${o}</option>`).join("")}
     </select>
-    <div class="fhint">💬 Choose the type that matches how you were employed.</div>
+  </div>
+</div>
+<div class="g2">
+  <div class="field">
+    <label>Location / Remote</label>
+    <input id="mf_loc" value="${escapeAttr(d.loc)}" placeholder="e.g. Kozhikode, India / Remote">
+    <div class="fhint">💬 City and country, or write "Remote".</div>
+  </div>
+  <div class="field">
+    <label>Department / Team</label>
+    <input id="mf_dept" value="${escapeAttr(d.dept)}" placeholder="e.g. Engineering, Sales, Operations">
+    <div class="fhint">💬 Which team or department were you part of?</div>
+  </div>
+</div>
+<div class="g2">
+  <div class="field">
+    <label>Reporting To</label>
+    <input id="mf_reporting" value="${escapeAttr(d.reporting)}" placeholder="e.g. Senior Engineer, Branch Manager">
+    <div class="fhint">💬 Your direct manager's title (not name). Helps show seniority context.</div>
+  </div>
+  <div class="field">
+    <label>Team Size Managed (if any)</label>
+    <input id="mf_teamsize" value="${escapeAttr(d.teamsize)}" placeholder="e.g. 5 direct reports, 12-person team">
+    <div class="fhint">💬 Only if you managed or supervised others. Leave blank if not applicable.</div>
   </div>
 </div>
 <div class="field">
-  <label>Location / Remote</label>
-  <input id="mf_loc" value="${escapeAttr(d.loc)}" placeholder="e.g. Kozhikode, India / Remote">
-  <div class="fhint">💬 City and country, or write "Remote" if fully remote.</div>
+  <label>Technologies, Tools &amp; Systems Used <span class="badge b-key" style="font-size:9px">ATS Key</span></label>
+  <input id="mf_tech" value="${escapeAttr(d.tech)}" placeholder="Python, SAP, Salesforce, Excel, POS, ERP, Jira, Tally…">
+  <div class="fhint">💬 Every tool you used — software, systems, platforms. Be specific: "SAP S/4HANA" not "SAP".</div>
 </div>
 <div class="field">
-  <label>Technologies &amp; Tools Used <span class="badge b-key" style="font-size:9px">ATS Key</span></label>
-  <input id="mf_tech" value="${escapeAttr(d.tech)}" placeholder="Python, Django, PostgreSQL, WebSockets, Docker…">
-  <div class="fhint">💬 Use exact names — "PostgreSQL" not "Postgres". Separate with commas. These become skill tags on your CV.</div>
+  <label>Volume &amp; Scale <span style="font-weight:400;color:var(--text3)">(numbers matter most here)</span></label>
+  <textarea id="mf_volume" style="min-height:65px" placeholder="e.g.&#10;- Handled 200+ customer orders daily&#10;- Managed inventory worth ₹50L&#10;- Processed 500 invoices/month&#10;- Supported 30 branches across 3 states">${escapeHtml(d.volume||"")}</textarea>
+  <div class="fhint">💬 Revenue, sales targets, customers handled, orders processed, accounts managed — any numbers you can recall.</div>
 </div>
 <div class="field">
-  <label>What you did (Responsibilities)</label>
-  <textarea id="mf_resp" style="min-height:85px" placeholder="Describe your main tasks and what you were responsible for.&#10;e.g.&#10;- Developed REST APIs for a client billing system&#10;- Managed PostgreSQL database design and migrations&#10;- Built real-time chat features using Django Channels">${escapeHtml(d.resp || "")}</textarea>
-  <div class="fhint">💬 Write in plain language — the AI will rewrite these as strong CV bullets with action verbs.</div>
+  <label>Daily Responsibilities <span style="font-weight:400;color:var(--text3)">(what you actually did every day)</span></label>
+  <textarea id="mf_resp" style="min-height:100px" placeholder="e.g.&#10;- Managed PostgreSQL database design and migrations&#10;- Handled customer onboarding and account setup&#10;- Prepared daily sales reports and submitted to manager&#10;- Coordinated with vendors for stock replenishment">${escapeHtml(d.resp||"")}</textarea>
+  <div class="fhint">💬 Write in plain language — what did you do daily/weekly? AI will rewrite as professional CV bullets.</div>
 </div>
 <div class="field">
-  <label>Achievements &amp; Results <span class="badge b-ai" style="font-size:9px">AI will enhance</span></label>
-  <textarea id="mf_achiev" style="min-height:75px" placeholder="What did you achieve or improve?&#10;e.g.&#10;- Reduced API response time by 40%&#10;- Delivered project 2 weeks ahead of schedule&#10;- System handled 500+ concurrent users">${escapeHtml(d.achiev || "")}</textarea>
-  <div class="fhint">💬 Numbers matter — include percentages, counts, time saved. Even rough estimates are fine.</div>
+  <label>Achievements &amp; Results <span style="font-weight:400;color:var(--text3)">(only real numbers — don't guess)</span></label>
+  <textarea id="mf_achiev" style="min-height:80px" placeholder="e.g.&#10;- Reduced delivery delays by 30% through route optimisation&#10;- Consistently met 110% of monthly sales target&#10;- Received Best Employee award Q3 2023&#10;- Trained 8 new joiners over 2 years">${escapeHtml(d.achiev||"")}</textarea>
+  <div class="fhint">💬 Only enter achievements you can verify. If you don't have exact numbers, describe the outcome without inventing a percentage.</div>
+</div>
+<div class="field">
+  <label>Problems You Solved</label>
+  <textarea id="mf_problems" style="min-height:65px" placeholder="e.g.&#10;- Reduced customer complaints by fixing broken returns workflow&#10;- Identified billing errors saving ₹2L/month&#10;- Reduced team overtime by redesigning shift schedule">${escapeHtml(d.problems||"")}</textarea>
+  <div class="fhint">💬 Specific situations where you identified and fixed a problem. Great for distinguishing yourself.</div>
+</div>
+<div class="g2">
+  <div class="field">
+    <label>KPIs / Targets You Were Measured On</label>
+    <input id="mf_kpis" value="${escapeAttr(d.kpis)}" placeholder="e.g. 95% SLA, ₹10L monthly sales, 98% accuracy">
+    <div class="fhint">💬 What metrics was your performance measured against? Enter real targets.</div>
+  </div>
+  <div class="field">
+    <label>Reason for Leaving (optional)</label>
+    <input id="mf_leaving" value="${escapeAttr(d.leaving)}" placeholder="e.g. Better opportunity, Contract ended, Relocation">
+    <div class="fhint">💬 Not shown in CV but helps AI understand your career path.</div>
+  </div>
 </div>
 <button class="btn btn-ai btn-sm" style="margin-top:.3rem;align-self:flex-start" id="enhanceBtn">✦ AI Enhance Bullets</button>
-<div class="tip-box" style="margin-top:.4rem;font-size:11.5px"><span class="tip-icon">💡</span><span>Click "AI Enhance Bullets" to convert your notes above into strong ATS-optimized bullet points with action verbs and metrics.</span></div>`;
+<div class="tip-box" style="margin-top:.4rem;font-size:11.5px"><span class="tip-icon">💡</span><span>Fill responsibilities above, then click AI Enhance. AI will rephrase using your exact data — it will NOT invent metrics you didn't provide.</span></div>`;
     }
-    if (type === "proj") {
+        if (type === "proj") {
       const d = idx >= 0 ? data.projects[idx] || {} : {};
       return `
 <div class="field">
@@ -1807,15 +1999,22 @@ ${html}
   function saveModal() {
     if (modalType === "exp") {
       const o = {
-        title: mv("mf_title"),
-        company: mv("mf_company"),
-        start: mv("mf_start"),
-        end: mv("mf_end"),
-        etype: mv("mf_etype"),
-        loc: mv("mf_loc"),
-        tech: mv("mf_tech"),
-        resp: mv("mf_resp"),
-        achiev: mv("mf_achiev"),
+        title:    mv("mf_title"),
+        company:  mv("mf_company"),
+        start:    mv("mf_start"),
+        end:      mv("mf_end"),
+        etype:    mv("mf_etype"),
+        loc:      mv("mf_loc"),
+        dept:     mv("mf_dept"),
+        reporting:mv("mf_reporting"),
+        teamsize: mv("mf_teamsize"),
+        tech:     mv("mf_tech"),
+        volume:   mv("mf_volume"),
+        resp:     mv("mf_resp"),
+        achiev:   mv("mf_achiev"),
+        problems: mv("mf_problems"),
+        kpis:     mv("mf_kpis"),
+        leaving:  mv("mf_leaving"),
       };
       if (!o.title || !o.company) {
         showToast("Job title and company required");
