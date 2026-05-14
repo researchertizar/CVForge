@@ -1438,10 +1438,15 @@ body {
   color: #1a1a1a;
   line-height: 1.42;
   background: #fff;
-  padding: 0;
 }
 
 /* ── Name block ── */
+.cv-body {
+  max-width: 180mm;
+  margin: 20px auto;
+  padding: 0;
+}
+
 .cv-name {
   font-size: 22pt;
   font-weight: 700;
